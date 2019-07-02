@@ -1,47 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:tools="http://schemas.android.com/tools"
-android:id="@+id/RelativeLayout1"
-android:layout_width="match_parent"
-android:layout_height="match_parent" >
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/RelativeLayout1"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000">
 
-<ImageView
-    android:id="@+id/img1"
-    android:layout_width="80dp"
-    android:layout_height="80dp"
-    android:layout_centerInParent="true"
-    android:src="@drawable/l_rock"/>
+    <ImageView
+        android:id="@+id/opp_r_hand"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/r_rock_reverse" />
 
-<ImageView
-    android:id="@+id/img2"
-    android:layout_width="80dp"
-    android:layout_height="80dp"
-    android:layout_toLeftOf="@id/img1"
-    android:layout_centerVertical="true"
-/>
+    <ImageView
+        android:id="@+id/opp_l_hand"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginLeft="120dp"
+        android:layout_toEndOf="@+id/opp_r_hand"
+        android:src="@drawable/l_rock_reverse" />
 
-<ImageView
-    android:id="@+id/img3"
-    android:layout_width="80dp"
-    android:layout_height="80dp"
-    android:layout_toRightOf="@id/img1"
-    android:layout_centerVertical="true"
-/>
+    <ImageView
+        android:id="@+id/center"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        />
 
-<ImageView
-    android:id="@+id/img4"
-    android:layout_width="80dp"
-    android:layout_height="80dp"
-    android:layout_above="@id/img1"
-    android:layout_centerHorizontal="true"
-/>
+    <ImageView
+        android:id="@+id/score_bar"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_centerHorizontal="true"
+        android:layout_above="@+id/center" />
 
-<ImageView
-    android:id="@+id/img5"
-    android:layout_width="80dp"
-    android:layout_height="80dp"
-    android:layout_below="@id/img1"
-    android:layout_centerHorizontal="true"
-/>
+    <ImageView
+        android:id="@+id/my_l_hand"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_centerVertical="true"
+        android:src="@drawable/l_rock" />
 
+    <ImageView
+        android:id="@+id/my_r_hand"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@+id/opp_r_hand"
+        android:layout_marginLeft="120dp"
+        android:src="@drawable/r_rock" />
 </RelativeLayout>

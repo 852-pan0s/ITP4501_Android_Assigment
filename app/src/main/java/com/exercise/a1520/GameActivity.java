@@ -8,9 +8,7 @@ public class GameActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.game);
-
-		//startTime = System.currentTimeMillis();
-
+		long startTime = System.currentTimeMillis();
 		Intent intent = getIntent(); 
 
 	}
