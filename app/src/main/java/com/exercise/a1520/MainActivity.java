@@ -15,6 +15,7 @@ import android.text.format.Time;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,6 +25,7 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
     private TextView tv_name;
     private Button btnStart;
     private String name;
+    private final int REQUEST_CODE = 8080;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +37,6 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
         draw = findViewById(R.id.draw);
         btnStart = findViewById(R.id.btnStart);
         draw.addView(new StartIcon(this));
-
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -69,9 +70,10 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
     @Override
     public void getText(String name, boolean isName) {
         if(isName) {
-            setContentView(R.layout.game);
+            //setContentView(R.layout.game);
             Intent i = new Intent(MainActivity.this, GameActivity.class);
-            i.putExtra("Name", name);
+            i.putExtra("name", name);
+            startActivity(i);
         }else{
             openDialog();
             Toast.makeText(getApplication(), name, Toast.LENGTH_LONG).show();
