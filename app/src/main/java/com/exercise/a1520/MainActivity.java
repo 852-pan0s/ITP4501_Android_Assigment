@@ -9,9 +9,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.Time;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -24,8 +26,12 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
     private LinearLayout draw;
     private TextView tv_name;
     private Button btnStart;
-    private String name;
     private final int REQUEST_CODE = 8080;
+    private DownloadTask task;
+    private String name;
+    private String json;
+    private boolean startGame;
+    private boolean isLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openDialog();
+                if(!isLoading) openDialog();
             }
         });
 
@@ -50,6 +56,22 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
     public void openDialog() {
         RegisterDialog rd = new RegisterDialog();
         rd.show(getSupportFragmentManager(), "Register");
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getJson() {
+        return json;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setJson(String json) {
+        this.json = json;
     }
 
     public void initialDB() {
@@ -69,14 +91,25 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
 
     @Override
     public void getText(String name, boolean isName) {
-        if(isName) {
-            //setContentView(R.layout.game);
-            Intent i = new Intent(MainActivity.this, GameActivity.class);
-            i.putExtra("name", name);
-            startActivity(i);
-        }else{
+        if (isName && (task == null || task.getStatus().equals(AsyncTask.Status.FINISHED))) {
+            setName(name);
+            task = new DownloadTask(this, getSupportFragmentManager(),true);
+            task.execute(getResources().getString(R.string.json_src) + "0");
+            startGame = false;
+        } else {
             openDialog();
             Toast.makeText(getApplication(), name, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public void startGame() {
+        if (!startGame) {
+            startGame = true;
+            Intent i = new Intent(MainActivity.this, GameActivity.class);
+            i.putExtra("name", name);
+            i.putExtra("JSON", json);
+            Toast.makeText(getApplication(), json, Toast.LENGTH_LONG).show();
+            startActivity(i);
         }
     }
 

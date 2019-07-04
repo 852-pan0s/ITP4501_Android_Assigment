@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">15 20</string>
+    <string name="json_src">https://4qm49vppc3.execute-api.us-east-1.amazonaws.com/Prod/itp4501_api/opponent/</string>
 </resources>

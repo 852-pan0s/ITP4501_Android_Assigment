@@ -1,18 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/RelativeLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000">
 
     <ImageView
-        android:layout_width=""
-        android:layout_height="" />
+        android:id="@+id/imgVsBar"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/vs"/>
+
+    <LinearLayout
+    android:id="@+id/ly_left"
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:layout_toLeftOf="@+id/imgVsBar"
+        android:orientation="horizontal">
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/ly_right"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_toRightOf="@+id/imgVsBar"
+        android:orientation="horizontal">
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/imgRound"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imgVsBar"
+        android:src="@drawable/your_round"/>
     <ImageView
         android:id="@+id/opp_r_hand"
         android:layout_width="150dp"
         android:layout_height="150dp"
+        android:layout_below="@+id/imgRound"
         android:src="@drawable/r_rock_reverse"
   />
 
@@ -21,15 +46,18 @@
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_marginLeft="120dp"
+        android:layout_below="@+id/imgRound"
         android:layout_toEndOf="@+id/opp_r_hand"
         android:src="@drawable/l_rock_reverse"/>
 
     <ImageView
-        android:id="@+id/center"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:id="@+id/imgGuess"
+        android:layout_below="@+id/opp_l_hand"
+        android:layout_width="300dp"
+        android:layout_height="240dp"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
+        android:src="@drawable/guess_0"
         />
 
     <ImageView
@@ -37,10 +65,11 @@
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:layout_centerHorizontal="true"
-        android:layout_above="@+id/center" />
+        android:layout_above="@+id/imgGuess" />
 
     <ImageView
         android:id="@+id/my_l_hand"
+        android:layout_below="@+id/imgGuess"
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_centerVertical="true"
@@ -48,6 +77,7 @@
 
     <ImageView
         android:id="@+id/my_r_hand"
+        android:layout_below="@+id/imgGuess"
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_centerVertical="true"
