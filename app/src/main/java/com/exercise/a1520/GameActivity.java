@@ -15,25 +15,28 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONObject;
 
-public class GameActivity extends AppCompatActivity {
-    private String name;
+import java.util.LinkedList;
+
+public class GameActivity extends AppCompatActivity implements ContinueDialog.ContinueListener {
     private ImageView[] imgHand; //0: my right hand, 1: my left hand, 2: opp right hand, 3: opp left hand
-    private int[] isRock;  // 0: my right hand, 1: my left hand, 2: opp right hand, 3: opp left hand
-    private int[] imgSrc; // image source
-    private ImageView imgGuess; //guess view
-    private ImageView imgRound;
-    private int[] win;  //0 = I win, 1= opponent wins
-    private int[] guess;  //0 = I guess, 1= opponent guesses
-    private String json;
-    private String srcLink;
+    private int[] isRock, imgSrc, win;  // 0: my right hand, 1: my left hand, 2: opp right hand, 3: opp left hand // image source //0 = I win, 1= opponent wins
+    private ImageView imgGuess, imgRound, imgAnswer; //guess view //round img //answer background
+    private String name, json, srcLink;
     private String[] opponentInfo; // [0] = id; [1] = name; ; [2] = country
     private DownloadTask task;
-    private int oppGuess;
-    private boolean isLoading;
+    private int myGuess, oppGuess, round;
+    private boolean isLoading, resultOk, isRoundEnd;
+    private ContinueDialog cd;
+    private TextView tv_name, tv_oppName, tv_winCount, tv_oppWinCount, tv_round;
+
+    private LinkedList<Opponent> opps;
+
+    private Object[][] player;
 
     private boolean myRound;
 
@@ -41,10 +44,11 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.game);
         getSupportActionBar().hide();
-
         long startTime = System.currentTimeMillis();
         Intent intent = getIntent();
         name = intent.getStringExtra("name");
+
+
         json = intent.getStringExtra("JSON");
         opponentInfo = new String[4];
         srcLink = getResources().getString(R.string.json_src);
@@ -52,10 +56,27 @@ public class GameActivity extends AppCompatActivity {
         imgHand = new ImageView[4];
         imgSrc = new int[99];
         win = new int[2];
-        guess = new int[2];
         myRound = true;
+        cd = new ContinueDialog();
+
+        opps = new LinkedList<>();
+
         imgGuess = findViewById(R.id.imgGuess);
         imgRound = findViewById(R.id.imgRound);
+        imgAnswer = findViewById(R.id.imgAnswer);
+        tv_name = findViewById(R.id.tv_name);
+        tv_oppName = findViewById(R.id.tv_oppName);
+        tv_winCount = findViewById(R.id.tv_winCount);
+        tv_oppWinCount = findViewById(R.id.tv_oppWinCount);
+        tv_round = findViewById(R.id.tv_round);
+        imgAnswer.setImageDrawable(null);
+
+        tv_name.setText(name);
+        try {
+            tv_oppName.setText(new JSONObject(json).getString("name"));
+        } catch (Exception e) {
+            Log.d("JSON get name error", e.getMessage());
+        }
 
         imgHand[0] = findViewById(R.id.my_r_hand);
         imgHand[1] = findViewById(R.id.my_l_hand);
@@ -77,6 +98,7 @@ public class GameActivity extends AppCompatActivity {
         imgSrc[12] = R.drawable.guess_20; //guess 20
         imgSrc[13] = R.drawable.opponent_guess; //opponent guess
 
+
         //set onclike listener for each hand image view
         int i = 0;
         for (final ImageView hiv : imgHand) {
@@ -84,18 +106,26 @@ public class GameActivity extends AppCompatActivity {
             hiv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (!isLoading && (myRound || x <= 1)) {
-                        if (isRock[x] == 0) {
-                            // set image to paper
-                            hiv.setImageResource(imgSrc[x + 4]);
-                            isRock[x] = 5;
-                        } else {
-                            //set image to rock
-                            hiv.setImageResource(imgSrc[x]);
-                            isRock[x] = 0;
+                    if (!isRoundEnd) {
+                        if (!isLoading && (myRound || x <= 1)) {
+                            if (isRock[x] == 0) {
+                                // set image to paper
+                                hiv.setImageResource(imgSrc[x + 4]);
+                                isRock[x] = 5;
+                            } else {
+                                //set image to rock
+                                hiv.setImageResource(imgSrc[x]);
+                                isRock[x] = 0;
+                            }
+                            if (myRound) {
+                                setGuessImg();
+                            }
                         }
-                        if (myRound) {
-                            setGuessImg();
+                    } else {
+                        if (win[0] > 1 || win[1] > 1) {
+                            cd.show(getSupportFragmentManager(), "Continue");
+                        } else {
+                            roundStart();
                         }
                     }
                 }
@@ -106,12 +136,45 @@ public class GameActivity extends AppCompatActivity {
         imgGuess.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isLoading) fight();
+                if (opps.size() > 0) {
+                    if (win[0] > 1 || win[1] > 1) {
+                        cd.show(getSupportFragmentManager(), "Continue");
+                    } else {
+                        if (myRound) {
+                            myGuess = getActualHand();
+                        }
+                        roundStart();
+                    }
+                }
             }
         });
 
-        setOpponent();
 
+        setOpponent();
+        downloadGuess(10,false);
+    }
+
+    public void roundStart() {
+        isRoundEnd = false;
+        if (myRound) {
+            imgRound.setImageResource(R.drawable.your_round);
+        } else {
+            imgRound.setImageResource(R.drawable.opp_round);
+        }
+        if (resultOk) {
+            resultOk = false;
+            if (win[0] == 0 && win[1] == 0) {
+                switchPlayer();
+            } else {
+                if (myRound) {
+                    initRound(true);
+                } else {
+                    initRound(false);
+                }
+            }
+        } else {
+            fight();
+        }
     }
 
     public int getActualHand() {
@@ -125,13 +188,6 @@ public class GameActivity extends AppCompatActivity {
         //reset all the hand (value) to rock
         for (int i = 0; i < isRock.length; i++)
             isRock[i] = 0;
-
-        //reset win
-        for (int i = 0; i < win.length; i++) {
-            win[i] = 0;
-            guess[i] = 0;
-        }
-
         for (int i = 0; i < imgHand.length; i++) {
             if (showAll || i <= 1) {
                 imgHand[i].setImageResource(imgSrc[i]);
@@ -145,6 +201,7 @@ public class GameActivity extends AppCompatActivity {
             //set guess to ??
             imgGuess.setImageResource(imgSrc[13]);
         }
+        imgAnswer.setImageDrawable(null);
     }
 
     public void switchPlayer() {
@@ -156,6 +213,7 @@ public class GameActivity extends AppCompatActivity {
             imgRound.setImageResource(R.drawable.opp_round);
             initRound(false);
         }
+        imgAnswer.setImageDrawable(null);
     }
 
     public void setOpponent() {
@@ -164,30 +222,31 @@ public class GameActivity extends AppCompatActivity {
             opponentInfo[0] = jObj.getString("id");
             opponentInfo[1] = jObj.getString("name");
             opponentInfo[2] = jObj.getString("country");
-            setGuessImg();
+
         } catch (Exception e) {
             Toast.makeText(this, "setOpponent Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
-    public void fight() {
+    public void downloadGuess(int count, boolean showDialog) {
         if (task == null || task.getStatus().equals(AsyncTask.Status.FINISHED)) {
             isLoading = true;
-            task = new DownloadTask(this, getSupportFragmentManager(), false);
+            task = new DownloadTask(this, getSupportFragmentManager(), showDialog);
+            task.setTitle(String.format("Connecting to the server... (%d/%d)",opps.size(),count));
+            task.setDoCount(count);
             task.execute(srcLink + opponentInfo[0]);
         }
     }
 
-    public void setOppJson(String oppJson) {
+    public void setOppGuessJson(String oppJson) {
         try {
             JSONObject jObj = new JSONObject(oppJson);
-            isRock[3] = jObj.getInt("left"); //
-            isRock[2] = jObj.getInt("right");
-            oppGuess = jObj.getInt("guess");
-            Toast.makeText(this, "Opp: " + oppGuess + "," + isRock[3] + "," + isRock[2], Toast.LENGTH_LONG).show();
+            int guess = jObj.getInt("guess");
+            int right = jObj.getInt("right");
+            int left = jObj.getInt("left");
+            opps.addLast(new Opponent(opponentInfo[0], opponentInfo[1], opponentInfo[2], left, right, guess));
+            //Toast.makeText(this, "Opp: " + oppGuess + "," + isRock[3] + "," + isRock[2], Toast.LENGTH_LONG).show();
             isLoading = false;
-            setHandImg();
-            switchPlayer();
         } catch (Exception e) {
             Toast.makeText(this, "setOppJson Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
@@ -198,8 +257,8 @@ public class GameActivity extends AppCompatActivity {
         int i = 0;
         for (final ImageView hiv : imgHand) {
             final int x = i++;
-            if (!isLoading) {
-                if (isRock[x] != 0) {
+            if (!isLoading && !myRound) {
+                if (isRock[x] == 5) {
                     // set image to paper
                     hiv.setImageResource(imgSrc[x + 4]);
                 } else {
@@ -211,8 +270,11 @@ public class GameActivity extends AppCompatActivity {
     }
 
     public void setGuessImg() {
-        int sum = getActualHand();
         int handIdx = 0;
+        int sum = getActualHand();
+        if (!myRound) {
+            sum = oppGuess;
+        }
         switch (sum) {
             case 0:
                 handIdx = 8;
@@ -230,44 +292,68 @@ public class GameActivity extends AppCompatActivity {
                 handIdx = 12;
                 break;
         }
+
         imgGuess.setImageResource(imgSrc[handIdx]);
     }
 
-    class DrawHP extends View {
-        private boolean paper;
-
-        public DrawHP(Context context) {
-            super(context);
-        }
-
-        @Override
-        public void onDraw(Canvas canvas) {
-            canvas.drawColor(Color.BLACK);
-            Bitmap icon = null;
-            icon = BitmapFactory.decodeResource(getResources(), R.drawable.logo);
-            canvas.drawBitmap(icon, getWidth() * 0.2f, getHeight() * 0.2f, null);
-            //returns bitmap of image in any drawable folder contained in res folder
-            if (paper) {
-                icon = BitmapFactory.decodeResource(getResources(), R.drawable.l_rock);
+    public void fight() {
+        oppGuess = opps.getFirst().getGuess();
+        isRock[2] = opps.getFirst().getLeft();
+        isRock[3] = opps.getFirst().getRight();
+        opps.removeFirst();
+        setHandImg();
+        int roundHand = getActualHand();
+        if (myRound) {
+            imgAnswer.setImageResource(R.drawable.guess_answer);
+            if (roundHand == myGuess) {
+                if (++win[0] >= 2) {
+                    imgRound.setImageResource(R.drawable.you_win);
+                }
             } else {
-                icon = BitmapFactory.decodeResource(getResources(), R.drawable.l_paper);
+                win[0] = 0;
             }
-
-
-            //drawBitmap(Bitmap bitmap, float left, float top, Paint paint)
-            //Draw the specified bitmap, with its top/left corner at (x,y),
-            //using the specified paint, transformed by the current matrix.
-            canvas.drawBitmap(icon, getWidth() * 0.32f, getHeight() * 0.45f, null);
-
-        }
-
-        public boolean onTouchEvent(MotionEvent event) {
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                if (event.getX() >= getWidth() * 0.32f && event.getX() <= getWidth() * 0.65f && event.getY() >= getHeight() * 0.4f && event.getY() <= getHeight() * 0.7f)
-                    paper = !paper;
+        } else {
+            imgAnswer.setImageResource(R.drawable.guess_opp);
+            if (roundHand == oppGuess) {
+                if (++win[1] >= 2) {
+                    imgRound.setImageResource(R.drawable.you_lose);
+                }
+            } else {
+                win[1] = 0;
             }
-            invalidate();
-            return true;
         }
+        tv_winCount.setText("" + win[0]);
+        tv_oppWinCount.setText("" + win[1]);
+        round++;
+        tv_round.setText("Round:" + round);
+        resultOk = true;
+        isRoundEnd = true;
+        Log.d("LinkedList", "" + opps.size());
+        if (opps.size() <= 10) {
+            downloadGuess(50,false);
+        }
+    }
+
+    @Override
+    public void continueGame(boolean isContinue) {
+        if (isContinue) {
+            roundStart();
+            for (int i = 0; i < win.length; i++) {
+                win[i] = 0;
+            }
+        } else {
+            finish();
+        }
+    }
+
+    public void finish() {
+        Intent result = new Intent();
+        result.putExtra("gameFinish", "OK");
+        setResult(RESULT_OK, result);
+        super.finish();
+    }
+
+    public void onBackPressed(){
+        //not allow pressing the back button
     }
 }

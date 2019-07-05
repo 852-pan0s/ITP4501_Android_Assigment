@@ -12,19 +12,17 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class RegisterDialog extends DialogFragment {
-    private EditText et_name;
-    private RegisterListener listener;
-    private String[] item;
+public class ContinueDialog extends DialogFragment {
+    private ContinueDialog.ContinueListener listener;
 
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         try {
-            listener = (RegisterListener) context;
+            listener = (ContinueDialog.ContinueListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + ": You need to implement RegisterListener.");
+            throw new ClassCastException(context.toString() + ": You need to implement ContinueListener.");
         }
     }
 
@@ -33,34 +31,26 @@ public class RegisterDialog extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.register, null);
+        View view = inflater.inflate(R.layout.continue_game, null);
         builder.setView(view)
-                .setTitle("Enter your name")
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                .setTitle("Continue?")
+                .setNegativeButton("Quit", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
+                        listener.continueGame(false);
                     }
                 })
-                .setPositiveButton("Start", new DialogInterface.OnClickListener() {
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String name = et_name.getText().toString();
-                        if (name.length() > 0)
-                            listener.getText(name, true);
-                        else {
-                            listener.getText("Name cannot be empty!", false);
-                        }
+                        listener.continueGame(true);
                     }
-                })
-        ;
-
-        et_name = view.findViewById(R.id.et_name);
+                });
 
         return builder.create();
     }
 
-    public interface RegisterListener {
-        void getText(String name, boolean isName);
+    public interface ContinueListener {
+        void continueGame(boolean isContinue);
     }
 }

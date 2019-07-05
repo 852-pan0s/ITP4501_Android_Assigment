@@ -5,18 +5,18 @@
     android:padding="16dp">
 
     <TextView
-        android:id="@+id/tv_title"
+        android:id="@+id/tv_loading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:textColor="#000"
         android:textSize="24dp"
-        android:text="Finding opponent..." />
+        android:text="Loading..." />
 
     <ProgressBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_toRightOf="@+id/tv_title" />
+        android:layout_toRightOf="@+id/tv_loading" />
 </RelativeLayout>

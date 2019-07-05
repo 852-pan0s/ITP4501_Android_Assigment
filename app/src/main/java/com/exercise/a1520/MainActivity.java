@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -25,7 +26,7 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity implements RegisterDialog.RegisterListener {
     private LinearLayout draw;
     private TextView tv_name;
-    private Button btnStart;
+    private Button btnStart, btnStatistics, btnProfile, btnQuit;
     private final int REQUEST_CODE = 8080;
     private DownloadTask task;
     private String name;
@@ -42,11 +43,30 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
 
         draw = findViewById(R.id.draw);
         btnStart = findViewById(R.id.btnStart);
+        btnStatistics = findViewById(R.id.btnStatistics);
+        btnProfile = findViewById(R.id.btnProfile);
+        btnQuit = findViewById(R.id.btnQuit);
         draw.addView(new StartIcon(this));
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(!isLoading) openDialog();
+            }
+        });
+
+        btnStatistics.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(MainActivity.this ,StatisticsActivity.class);
+//                Intent i = new Intent(MainActivity.this, GameActivity.class);
+                startActivity(i);
+            }
+        });
+
+        btnQuit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
             }
         });
 
@@ -80,9 +100,10 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
             SQLiteDatabase db = SQLiteDatabase.openDatabase("/data/data/com.exercise.a1520/GameDB", null, SQLiteDatabase.CREATE_IF_NECESSARY);
 
             db.execSQL("CREATE TABLE IF NOT EXISTS GameLog (gameDate TEXT, gameTime TEXT, opponentName TEXT, winOrLose INTEGER, PRIMARY KEY(gameDate,gameTime));");
+            db.execSQL("DELETE FROM GameLog");
             Cursor c = db.rawQuery("select * from GameLog ORDER BY gameDate, gameTime", null);
             c.moveToNext();
-            //Toast.makeText(this, c.getString(2),Toast.LENGTH_LONG).show();
+            Log.d("DB of MainActivity","DB is ok");
             db.close();
         } catch (SQLiteException e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
@@ -108,8 +129,20 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
             Intent i = new Intent(MainActivity.this, GameActivity.class);
             i.putExtra("name", name);
             i.putExtra("JSON", json);
-            Toast.makeText(getApplication(), json, Toast.LENGTH_LONG).show();
-            startActivity(i);
+            //Toast.makeText(getApplication(), json, Toast.LENGTH_LONG).show();
+            startActivityForResult(i,500);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            if (data.hasExtra("gameFinish")) {
+                Log.d("MainActivity","restart");
+                Intent i = getIntent();
+                finish();
+                startActivity(i);
+            }
         }
     }
 

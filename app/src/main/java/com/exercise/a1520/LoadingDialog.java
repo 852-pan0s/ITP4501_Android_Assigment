@@ -9,19 +9,29 @@ import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 public class LoadingDialog  extends DialogFragment {
-    private EditText et_name;
-    private RegisterDialog.RegisterListener listener;
+    private TextView tv_loading;
+    public static String title;
+
+    public LoadingDialog(){}
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.loading,null);
         builder.setView(view);
+        tv_loading = view.findViewById(R.id.tv_loading);
 
+        if(title.length()>0)
+            tv_loading.setText(title);
+        else{
+            tv_loading.setText("Loading...");
+        }
         return builder.create();
     }
 

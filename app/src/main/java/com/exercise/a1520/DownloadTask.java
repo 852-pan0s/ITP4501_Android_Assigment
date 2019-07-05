@@ -23,6 +23,8 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
     private AppCompatActivity activity;
     private boolean showDialog;
     private LoadingDialog ld;
+    private int doCount;
+    private String title = "";
 
 
     public DownloadTask(AppCompatActivity activity, FragmentManager fm, boolean showDialog) {
@@ -31,49 +33,65 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
         this.showDialog = showDialog;
     }
 
+    public void setDoCount(int doCount) {
+        this.doCount = doCount;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     @Override
     protected String doInBackground(String... values) {
+        int count = doCount;
         if (showDialog) {
             ld = new LoadingDialog();
             ld.show(fm, "Loading");
         }
+
+        if (title.length() > 0) {
+            ld.title = title;
+        } else {
+            ld.title = "";
+        }
+
         InputStream inputStream = null;
         String result = "";
         URL url = null;
-        try {
-            url = new URL(values[0]);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection(); // Make GET request
-            con.setRequestMethod("GET");
-            con.connect();
-            inputStream = con.getInputStream();
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-            String line = "";
-            while ((line = bufferedReader.readLine()) != null) {
-                result += line;
+        while (count >= 0) {
+            try {
+                url = new URL(values[0]);
+                HttpURLConnection con = (HttpURLConnection) url.openConnection(); // Make GET request
+                con.setRequestMethod("GET");
+                con.connect();
+                inputStream = con.getInputStream();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                String line = "";
+                while ((line = bufferedReader.readLine()) != null) {
+                    result += line;
+                }
+                Log.d("Download",result);
+                try {
+                    MainActivity ma = (MainActivity) activity;
+                    ma.setJson(result);
+                    ma.startGame();
+                } catch (Exception ex) {
+                    try {
+                        GameActivity ga = (GameActivity) activity;
+                        ga.setOppGuessJson(result);
+                        result = "";
+                    } catch (Exception e) {
+                        String error = e.getMessage();
+                        Log.d("Download Error", error);
+                    }
+                }
+                inputStream.close();
+            } catch (Exception e) {
+                result = e.getMessage();
             }
-            inputStream.close();
-        } catch (Exception e) {
-            result = e.getMessage();
+            count--;
         }
         if (showDialog) ld.dismiss();
         return result;
-    }
-
-    @Override
-    protected void onPostExecute(String result) {
-        // Parse to get weather information in String result
-        try {
-            MainActivity ma = (MainActivity) activity;
-            ma.setJson(result);
-            ma.startGame();
-        } catch (Exception ex) {
-            try {
-                GameActivity ga = (GameActivity) activity;
-                ga.setOppJson(result);
-            } catch (Exception e) {
-                String error = e.getMessage();
-                Log.d("Download Error", error);
-            }
-        }
     }
 }
