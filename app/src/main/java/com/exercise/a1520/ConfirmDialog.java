@@ -6,7 +6,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -15,7 +17,15 @@ import android.widget.Toast;
 public class ConfirmDialog extends DialogFragment {
     private ConfirmListener listener;
 
-
+    @Override
+    public void show(FragmentManager manager, String tag) {
+        try {
+            manager.beginTransaction().remove(this).commit();
+        } catch (Exception e) {
+            Log.e("Dialog","  has not been shown");
+        }
+        super.show(manager, tag);
+    }
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);

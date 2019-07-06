@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -30,7 +31,15 @@ public class ProfileDialog extends DialogFragment {
     private TextView tv_title;
     private AppCompatActivity activity;
     private int id;
-
+    @Override
+    public void show(FragmentManager manager, String tag) {
+        try {
+            manager.beginTransaction().remove(this).commit();
+        } catch (Exception e) {
+            Log.e("Dialog","  has not been shown");
+        }
+        super.show(manager, tag);
+    }
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());

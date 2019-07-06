@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -110,6 +111,16 @@ public class RegisterDialog extends DialogFragment {
 
     public interface RegisterListener {
         void getText(boolean isName);
+    }
+
+    @Override
+    public void show(FragmentManager manager, String tag) {
+        try {
+            manager.beginTransaction().remove(this).commit();
+        } catch (Exception e) {
+            Log.e("Dialog","  has not been shown");
+        }
+        super.show(manager, tag);
     }
 
     public void register() {

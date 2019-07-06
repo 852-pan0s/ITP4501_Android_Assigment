@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -16,6 +18,19 @@ import org.w3c.dom.Text;
 public class LoadingDialog extends DialogFragment {
     private TextView tv_loading;
     public static String title;
+
+    @Override
+    public void show(FragmentManager manager, String tag) {
+        try {
+            manager.beginTransaction().remove(this).commit();
+        } catch (Exception e) {
+            Log.e("Dialog","  has not been shown");
+
+        }
+        super.show(manager, tag);
+    }
+
+
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
