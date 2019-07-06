@@ -14,8 +14,8 @@ import android.view.View;
 
 public class StatisticsActivity extends AppCompatActivity {
 
-    String win = "51";
-    String lose = "5";
+    String win = "55";
+    String lose = "30";
     int cardinalNum = 5; // cardinal number
     int split = 10; // split how many the axis y of the chart
     int[] chartAxisY = new int[split + 1]; //include 0, so  +1
@@ -27,11 +27,6 @@ public class StatisticsActivity extends AppCompatActivity {
         getSupportActionBar().hide();
         int maxNumberOfGridlines = cardinalNum * split;
         setChartAxisY();
-        // set the cardinal number
-//        while (max>maxNumberOfGridlines){
-//            max -= maxNumberOfGridlines; //because every Y axis of the chart
-//            cardinalNum +=5;
-//        }
 
 
     }
@@ -42,16 +37,28 @@ public class StatisticsActivity extends AppCompatActivity {
 
     public void setChartAxisY() {
         int max = getMax(Integer.parseInt(win), Integer.parseInt(lose));
-        int i = 1;
         chartAxisY[1] = getFirstChartAxisY(max);
-        while (max > chartAxisY[1]) {
-            max -= cardinalNum; //because every Y axis of the chart
-            chartAxisY[++i] += chartAxisY[i - 1] + cardinalNum;
-            Log.d("chartAxisY" + i, "" + chartAxisY[i]);
+        int i = 1;
+        if (max < cardinalNum * split) {
+            int index = split - 1; // second index of axis Y have been set.
+            while (index > 0) {
+                chartAxisY[++i] += chartAxisY[i - 1] + cardinalNum;
+                Log.d("chartAxisY" + i, "" + chartAxisY[i]);
+                index--;
+            }
+        } else {
+            while (max > chartAxisY[1]) {
+                max -= cardinalNum; //because every Y axis of the chart
+                chartAxisY[++i] += chartAxisY[i - 1] + cardinalNum;
+                Log.d("chartAxisY" + i, "" + chartAxisY[i]);
+            }
         }
     }
 
     public int getFirstChartAxisY(int max) {
+        if (max < cardinalNum * split) {
+            return cardinalNum;
+        }
         int maxchartAxisY = 0;
         int i = 0;
         while (max > 0) {
@@ -92,19 +99,19 @@ public class StatisticsActivity extends AppCompatActivity {
             canvas.drawRect(chartStartX, chartStartY, chartStopX, chartStartY * 1.003f, paint);
 
             //draw gridlines of the chart
-            float hDistance = cHeight / split; //distance height of line
+            float hdgLing = cHeight / split; //height of distance  of gridline
             for (int i = 0; i <= split; i++) {
-                float hLine = hDistance * i;
-                float lineStartX = chartStartX * 0.9f;
-                float lineStopX = chartStopX;
-                float lineStartY = chartStartY - hLine;
-                float lineStopY = lineStartY * 1.0015f;  //Rough of line
-                float textStartX = lineStartX - fSize / 2;
-                float textStartY = chartStartY + fSize / 3f - hLine;
-                canvas.drawText("" + chartAxisY[i], textStartX, textStartY, paint);
+                float hGline = hdgLing * i; // height of gridline
+                float gLineStartX = chartStartX * 0.9f;
+                float gLineStopX = chartStopX;
+                float gLineStartY = chartStartY - hGline;
+                float gLineStopY = gLineStartY * 1.0015f;  //Rough of gridlines
+                float textStartX = gLineStartX - fSize / 2; // start X of text of chart axis Y
+                float textStartY = chartStartY + fSize / 3f - hGline; //start Y of text of chart axis Y
+                canvas.drawText("" + chartAxisY[i], textStartX, textStartY, paint); // draw text for the chart axis Y
 
-                //draw line of Chart
-                canvas.drawRect(lineStartX, lineStartY, lineStopX, lineStopY, paint);
+                //draw gridlines of the chart
+                canvas.drawRect(gLineStartX, gLineStartY, gLineStopX, gLineStopY, paint);
             }
 
             float series = 3;
@@ -127,19 +134,37 @@ public class StatisticsActivity extends AppCompatActivity {
                 }
 
                 //draw series, when i= 1 = draw win  ,  i=2 = draw lose
-                if (i > 0) {
-                    float temp = i == 1 ? Float.parseFloat(win) : Float.parseFloat(lose);
-                    paint.setColor(i == 1 ? Color.GREEN : Color.RED);
+                if (i == 1 || i == 2) {
+                    float temp = i == 1 ? Float.parseFloat(win) : Float.parseFloat(lose); // get win or lose
+                    Log.d("temp1", "" + temp);
+                    paint.setColor(i == 1 ? Color.GREEN : Color.RED); // set the color of win & lose
                     int y = 1;
                     float seriesStartY = chartStartY;
                     float seriesStartX = lineStartX - wSeries / 2;
                     float seriesStopX = seriesStartX + wSeries;
-                    while (temp > 0) {
-                        float percent = temp / chartAxisY[y];
-                        float seriesStopY = seriesStartY - hDistance * percent;
-                        seriesStartY -= seriesStopY;
-                        temp -= cardinalNum;
+                    //draw the first chart axis Y (e.g. from 0 to 5, 0 to 10, 0 to 45, etc.)
+                    if (temp > chartAxisY[1]) {
+                        y = 2;
+                        float seriesStopY = seriesStartY - hdgLing; //because the temp is greater than the charAxisY, the percentage is 100%, here is hide
                         canvas.drawRect(seriesStartX, seriesStartY, seriesStopX, seriesStopY, paint);
+                        seriesStartY = seriesStopY; //set next the start of next chart axis Y
+                        temp -= chartAxisY[1]; // make the start to second chart axis Y
+                        Log.d("temp2", "" + temp);
+                    } else {
+                        Log.d("temp2", "" + temp);
+                        float percent = temp / chartAxisY[1]; //calculate the percentage of temp over first chart axis Y
+                        float seriesStopY = seriesStartY - hdgLing * percent;
+                        canvas.drawRect(seriesStartX, seriesStartY, seriesStopX, seriesStopY, paint);
+                        temp = 0;
+                    }
+                    while (temp > 0) {
+                        float percent = temp > cardinalNum ? 1.0f : temp / cardinalNum; //1.0f = 100%(converted to float
+                        float seriesStopY = seriesStartY - hdgLing * percent;
+                        canvas.drawRect(seriesStartX, seriesStartY, seriesStopX, seriesStopY, paint);
+                        Log.d("temp3, percent", "" + temp + "," + percent);
+                        seriesStartY = seriesStopY;
+                        temp -= cardinalNum;
+                        Log.d("seriesStartY", "" + percent);
                     }
                     //float percent = (Float.parseFloat(i == 1 ? win : lose) / cardinalNum);
 
