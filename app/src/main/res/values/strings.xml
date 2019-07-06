@@ -8,4 +8,7 @@
         <item>United States</item>
         <item>China</item>
     </string-array>
+    <string name="emptyName">Name cannot be empty!</string>
+    <string name="save">Saved!</string>
+    <string name="deleted">Your profile has been deleted!</string>
 </resources>

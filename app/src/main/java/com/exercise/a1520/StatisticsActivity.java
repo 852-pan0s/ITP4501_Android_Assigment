@@ -1,6 +1,10 @@
 package com.exercise.a1520;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -14,8 +18,10 @@ import android.view.View;
 
 public class StatisticsActivity extends AppCompatActivity {
 
-    String win = "55";
-    String lose = "30";
+    String win = "0";
+    String lose = "0";
+    String[] seriesName = {"Win", "Lose"};
+    int[] seriesColor = {Color.GREEN, Color.RED};
     int cardinalNum = 5; // cardinal number
     int split = 10; // split how many the axis y of the chart
     int[] chartAxisY = new int[split + 1]; //include 0, so  +1
@@ -25,10 +31,29 @@ public class StatisticsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(new DrawableView(this));
         getSupportActionBar().hide();
-        int maxNumberOfGridlines = cardinalNum * split;
         setChartAxisY();
+        setDate();
 
+    }
 
+    public void setDate() {
+        try {
+            SQLiteDatabase db = SQLiteDatabase.openDatabase("/data/data/com.exercise.a1520/GameDB", null, SQLiteDatabase.CREATE_IF_NECESSARY);
+// GameLog (gameDate TEXT, gameTime TEXT, opponentName TEXT, winOrLose INTEGER, PRIMARY KEY(gameDate,gameTime));");
+            Cursor c = db.rawQuery("SELECT COUNT(*) AS 'winOrLose'FROM GameLog GROUP BY winOrLose ORDER BY winOrLose ASC", null);
+            try {
+                c.moveToNext();
+                win = c.getString(0);
+                c.moveToNext();
+                lose = c.getString(0);
+                Log.d("DB of profile", "DB is ok");
+            } catch (CursorIndexOutOfBoundsException ce) {
+                Log.d("Statistics Error", ce.getMessage());
+            }
+            db.close();
+        } catch (SQLiteException e) {
+            Log.d("profile error", e.getMessage());
+        }
     }
 
     public int getMax(int n1, int n2) {
@@ -82,20 +107,29 @@ public class StatisticsActivity extends AppCompatActivity {
             paint = new Paint();
             paint.setAntiAlias(true);
             paint.setColor(Color.BLACK);
-            float fSize = 48;
-            paint.setTextSize(fSize);
-            paint.setTextAlign(Paint.Align.RIGHT);
+
             float chartStartX = getWidth() / 6f;
             float chartStartY = getHeight() / 2f;
             float chartStopX = chartStartX * 5;
             float chartStopY = chartStartY - chartStartX * 4;
             float cHeight = chartStartY - chartStopY; // height of chart
             float cWeight = chartStopX - chartStartX; // width of chart
+
+            //draw title
+            float fSizeTitle = 64;
+            paint.setTextSize(fSizeTitle);
+            paint.setTextAlign(Paint.Align.CENTER);
+            canvas.drawText("Statistics of Win and Lose", chartStartX + chartStopX / 2f - fSizeTitle, chartStopY - fSizeTitle, paint);
+
+            //set paint for draw the text of axis Y
+            paint.setTextAlign(Paint.Align.RIGHT);
+            float fSize = 48;
+            paint.setTextSize(fSize);
             Log.d("StopY", "" + chartStopY);
 
-            //Y axis Legend
+            //draw the axis Y of the chart
             canvas.drawRect(chartStartX, chartStartY, chartStartX * 1.015f, chartStopY, paint);
-            //X axis Legend
+            //draw the axis X of the chart
             canvas.drawRect(chartStartX, chartStartY, chartStopX, chartStartY * 1.003f, paint);
 
             //draw gridlines of the chart
@@ -114,7 +148,7 @@ public class StatisticsActivity extends AppCompatActivity {
                 canvas.drawRect(gLineStartX, gLineStartY, gLineStopX, gLineStopY, paint);
             }
 
-            float series = 3;
+            float series = seriesName.length + 1; // 0 is first series name so +1
             float wSeries = 180; // width of series
             for (int i = 0; i < series; i++) {
 
@@ -127,25 +161,26 @@ public class StatisticsActivity extends AppCompatActivity {
                 canvas.drawRect(lineStartX, lineStartY, lineStopX, lineStopY, paint);
 
                 //draw text
-                if (i > 0) {
+                if (i > 0 && i <= seriesName.length) {
                     float textStartX = lineStartX + fSize;
                     float textStartY = chartStartY + fSize * 1.5f;
-                    canvas.drawText(i == 1 ? "Win" : "Lose", textStartX, textStartY, paint);
+                    canvas.drawText(seriesName[i - 1], textStartX, textStartY, paint);
                 }
 
                 //draw series, when i= 1 = draw win  ,  i=2 = draw lose
                 if (i == 1 || i == 2) {
                     float temp = i == 1 ? Float.parseFloat(win) : Float.parseFloat(lose); // get win or lose
                     Log.d("temp1", "" + temp);
-                    paint.setColor(i == 1 ? Color.GREEN : Color.RED); // set the color of win & lose
+                    paint.setColor(seriesColor[i - 1]); // set the color of win & lose
                     int y = 1;
                     float seriesStartY = chartStartY;
                     float seriesStartX = lineStartX - wSeries / 2;
                     float seriesStopX = seriesStartX + wSeries;
+                    float seriesStopY = seriesStartY * 0.95f;
                     //draw the first chart axis Y (e.g. from 0 to 5, 0 to 10, 0 to 45, etc.)
                     if (temp > chartAxisY[1]) {
                         y = 2;
-                        float seriesStopY = seriesStartY - hdgLing; //because the temp is greater than the charAxisY, the percentage is 100%, here is hide
+                        seriesStopY = seriesStartY - hdgLing; //because the temp is greater than the charAxisY, the percentage is 100%, here is hide
                         canvas.drawRect(seriesStartX, seriesStartY, seriesStopX, seriesStopY, paint);
                         seriesStartY = seriesStopY; //set next the start of next chart axis Y
                         temp -= chartAxisY[1]; // make the start to second chart axis Y
@@ -153,25 +188,38 @@ public class StatisticsActivity extends AppCompatActivity {
                     } else {
                         Log.d("temp2", "" + temp);
                         float percent = temp / chartAxisY[1]; //calculate the percentage of temp over first chart axis Y
-                        float seriesStopY = seriesStartY - hdgLing * percent;
+                        seriesStopY = seriesStartY - hdgLing * percent;
                         canvas.drawRect(seriesStartX, seriesStartY, seriesStopX, seriesStopY, paint);
                         temp = 0;
                     }
                     while (temp > 0) {
                         float percent = temp > cardinalNum ? 1.0f : temp / cardinalNum; //1.0f = 100%(converted to float
-                        float seriesStopY = seriesStartY - hdgLing * percent;
+                        seriesStopY = seriesStartY - hdgLing * percent;
                         canvas.drawRect(seriesStartX, seriesStartY, seriesStopX, seriesStopY, paint);
                         Log.d("temp3, percent", "" + temp + "," + percent);
                         seriesStartY = seriesStopY;
                         temp -= cardinalNum;
                         Log.d("seriesStartY", "" + percent);
                     }
-                    //float percent = (Float.parseFloat(i == 1 ? win : lose) / cardinalNum);
-
+                    //draw the number on the top of the series
+                    paint.setTextAlign(Paint.Align.CENTER);
+                    paint.setColor(Color.BLACK);
+                    canvas.drawText(i == 1 ? win : lose, seriesStopX-fSize*1.7f, seriesStopY, paint);
                 }
             }
 
+            //draw legend
+            paint.setTextAlign(Paint.Align.LEFT);
+            paint.setColor(seriesColor[0]); //square
+            canvas.drawRect(chartStartX, chartStartY + 200, chartStartX + 40, chartStartY + 240, paint);
+            paint.setColor(seriesColor[1]); //square
+            canvas.drawRect(chartStartX, chartStartY + 270, chartStartX + 40, chartStartY + 310, paint);
+            paint.setColor(Color.BLACK); //text
+            float legendStopY = chartStartY + 310;
+            canvas.drawText(seriesName[0], chartStartX + 80, chartStartY + 240, paint);
+            canvas.drawText(seriesName[1], chartStartX + 80, legendStopY, paint);
 
+            
         }
 
         public boolean onTouchEvent(MotionEvent event) {

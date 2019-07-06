@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -18,15 +20,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Calendar;
+
 import org.json.JSONObject;
 
+import java.util.Date;
 import java.util.LinkedList;
 
 public class GameActivity extends AppCompatActivity implements ContinueDialog.ContinueListener {
     private ImageView[] imgHand; //0: my right hand, 1: my left hand, 2: opp right hand, 3: opp left hand
     private int[] isRock, imgSrc, win;  // 0: my right hand, 1: my left hand, 2: opp right hand, 3: opp left hand // image source //0 = I win, 1= opponent wins
-    private ImageView imgGuess, imgRound, imgAnswer; //guess view //round img //answer background
-    private String name, json, srcLink;
+    private ImageView imgGuess, imgRound, imgAnswer, imgMyCountry, imgOppCountry; //guess view //round img //answer background
+    private String myName, myCountry, json, srcLink;
     private String[] opponentInfo; // [0] = id; [1] = name; ; [2] = country
     private DownloadTask task;
     private int myGuess, oppGuess, round;
@@ -46,9 +51,6 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
         getSupportActionBar().hide();
         long startTime = System.currentTimeMillis();
         Intent intent = getIntent();
-        name = intent.getStringExtra("name");
-
-
         json = intent.getStringExtra("JSON");
         opponentInfo = new String[4];
         srcLink = getResources().getString(R.string.json_src);
@@ -61,9 +63,14 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
 
         opps = new LinkedList<>();
 
+        if (MainActivity.getPlayerInfo()) myName = MainActivity.playerInfo[1];
+        myCountry = MainActivity.playerInfo[2];
+
         imgGuess = findViewById(R.id.imgGuess);
         imgRound = findViewById(R.id.imgRound);
         imgAnswer = findViewById(R.id.imgAnswer);
+        imgMyCountry = findViewById(R.id.imgMyCountry);
+        imgOppCountry = findViewById(R.id.imgOppCountry);
         tv_name = findViewById(R.id.tv_name);
         tv_oppName = findViewById(R.id.tv_oppName);
         tv_winCount = findViewById(R.id.tv_winCount);
@@ -71,7 +78,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
         tv_round = findViewById(R.id.tv_round);
         imgAnswer.setImageDrawable(null);
 
-        tv_name.setText(name);
+        tv_name.setText(myName);
         try {
             tv_oppName.setText(new JSONObject(json).getString("name"));
         } catch (Exception e) {
@@ -145,14 +152,47 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
                         }
                         roundStart();
                     }
+                } else {
+                    Toast.makeText(GameActivity.this, "Loading... Please wate...", Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-
         setOpponent();
-        downloadGuess(10,false);
+        downloadGuess(10, false);
+        saveGameLog(1);
     }
+
+    public void setCountryImg() {
+        String[] country = {myCountry, opponentInfo[2]};
+        ImageView[] imgCountry = {imgMyCountry, imgOppCountry};
+        int i = 0;
+        for (ImageView iv : imgCountry) {
+            switch (country[i++]) {
+                case "UK":
+                case "United Kingdom":
+                    iv.setImageResource(R.drawable.uk);
+                    break;
+                case "HK":
+                case "Hong Kong":
+                    iv.setImageResource(R.drawable.hk);
+                    break;
+                case "JP":
+                case "Japan":
+                    iv.setImageResource(R.drawable.jp);
+                    break;
+                case "US":
+                case "United States":
+                    iv.setImageResource(R.drawable.us);
+                    break;
+                case "CN":
+                case "China":
+                    iv.setImageResource(R.drawable.cn);
+                    break;
+            }
+        }
+    }
+
 
     public void roundStart() {
         isRoundEnd = false;
@@ -222,6 +262,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
             opponentInfo[0] = jObj.getString("id");
             opponentInfo[1] = jObj.getString("name");
             opponentInfo[2] = jObj.getString("country");
+            setCountryImg();
 
         } catch (Exception e) {
             Toast.makeText(this, "setOpponent Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -232,7 +273,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
         if (task == null || task.getStatus().equals(AsyncTask.Status.FINISHED)) {
             isLoading = true;
             task = new DownloadTask(this, getSupportFragmentManager(), showDialog);
-            task.setTitle(String.format("Connecting to the server... (%d/%d)",opps.size(),count));
+            task.setTitle(String.format("Connecting to the server... (%d/%d)", opps.size(), count));
             task.setDoCount(count);
             task.execute(srcLink + opponentInfo[0]);
         }
@@ -308,6 +349,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
             if (roundHand == myGuess) {
                 if (++win[0] >= 2) {
                     imgRound.setImageResource(R.drawable.you_win);
+                    saveGameLog(0);
                 }
             } else {
                 win[0] = 0;
@@ -317,6 +359,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
             if (roundHand == oppGuess) {
                 if (++win[1] >= 2) {
                     imgRound.setImageResource(R.drawable.you_lose);
+                    saveGameLog(1);
                 }
             } else {
                 win[1] = 0;
@@ -330,30 +373,55 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
         isRoundEnd = true;
         Log.d("LinkedList", "" + opps.size());
         if (opps.size() <= 10) {
-            downloadGuess(50,false);
+            downloadGuess(50, false);
         }
     }
 
     @Override
     public void continueGame(boolean isContinue) {
         if (isContinue) {
+            if (!myRound) switchPlayer();
             roundStart();
             for (int i = 0; i < win.length; i++) {
                 win[i] = 0;
             }
+            tv_winCount.setText("" + win[0]);
+            tv_oppWinCount.setText("" + win[1]);
         } else {
+            task.cancel(true);
             finish();
         }
     }
 
-    public void finish() {
-        Intent result = new Intent();
-        result.putExtra("gameFinish", "OK");
-        setResult(RESULT_OK, result);
-        super.finish();
+//    public void finish() {
+//        Intent result = new Intent();
+//        result.putExtra("gameFinish", "OK");
+//        setResult(RESULT_OK, result);
+//        super.finish();
+//    }
+
+    public void onBackPressed() {
+        //not allow pressing the back button
+        task.cancel(true);
+        task = null;
+        finish();
+        super.onBackPressed();
     }
 
-    public void onBackPressed(){
-        //not allow pressing the back button
+    public void saveGameLog(int lose) {
+        Date now = Calendar.getInstance().getTime();
+        String currentDate = now.getDate() + "-" + now.getMonth() + "-" + Calendar.getInstance().getWeekYear();
+        String curretnTime = now.getHours() + ":" + now.getMinutes();
+
+        try {
+            SQLiteDatabase db = SQLiteDatabase.openDatabase("/data/data/com.exercise.a1520/GameDB", null, SQLiteDatabase.CREATE_IF_NECESSARY);
+            // GameLog (gameDate TEXT, gameTime TEXT, opponentName TEXT, winOrLose INTEGER, PRIMARY KEY(gameDate,gameTime));");
+            String sql = String.format("INSERT INTO GameLog VALUES('%s','%s','%s',%d)", currentDate, curretnTime, opponentInfo[1], lose);
+            db.execSQL(sql);
+            Log.d("DB of Game", sql);
+            db.close();
+        } catch (SQLiteException e) {
+            Log.d("Game DB error", e.getMessage());
+        }
     }
 }

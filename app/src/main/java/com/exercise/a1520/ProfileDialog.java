@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
@@ -17,28 +18,18 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class RegisterDialog extends DialogFragment {
+public class ProfileDialog extends DialogFragment {
     private EditText et_name;
-    private RegisterListener listener;
     private String[] countries;
     private Spinner spinner;
     private ImageView imgCountry;
-
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        try {
-            listener = (RegisterListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + ": You need to implement RegisterListener.");
-        }
-    }
+    private TextView tv_title;
+    private AppCompatActivity activity;
+    private int id;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -53,22 +44,30 @@ public class RegisterDialog extends DialogFragment {
 
                     }
                 })
-                .setPositiveButton("Start", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String name = et_name.getText().toString();
-                        if (name.length() > 0) {
-                            register();
-                            listener.getText(true);
+                        if (et_name.getText().toString().length() > 0) {
+                            updateProfile();
+                            Toast.makeText(activity, getResources().getString(R.string.save), Toast.LENGTH_LONG).show();
                         } else {
-                            listener.getText(false);
+                            Toast.makeText(activity, getResources().getString(R.string.emptyName), Toast.LENGTH_LONG).show();
                         }
+                    }
+                })
+                .setNeutralButton("Delete", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        deleteProfile();
+                        Toast.makeText(activity, getResources().getString(R.string.deleted), Toast.LENGTH_LONG).show();
                     }
                 });
         countries = getResources().getStringArray(R.array.country);
         spinner = view.findViewById(R.id.spinner);
         et_name = view.findViewById(R.id.et_name);
         imgCountry = view.findViewById(R.id.imgCountry);
+        tv_title = view.findViewById(R.id.tv_title);
+        tv_title.setText("Profile");
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getActivity(), android.R.layout.simple_list_item_1, countries);
         spinner.setAdapter(adapter);
@@ -105,29 +104,75 @@ public class RegisterDialog extends DialogFragment {
             }
         });
 
+        onLoad();
+
         return builder.create();
     }
 
-    public interface RegisterListener {
-        void getText(boolean isName);
+    public void setActivity(AppCompatActivity activity) {
+        this.activity = activity;
     }
 
-    public void register() {
-        // Create a database if it does not exist
-        String name = et_name.getText().toString();
-        String country = spinner.getSelectedItem().toString();
-        if (country.length() == 0) country = countries[0];
+    public void deleteProfile() {
+        try {
+            SQLiteDatabase db = SQLiteDatabase.openDatabase("/data/data/com.exercise.a1520/GameDB", null, SQLiteDatabase.CREATE_IF_NECESSARY);
+            db.execSQL("DELETE FROM Player");
+            Log.d("DB of profile", "DB is ok");
+            db.close();
+        } catch (SQLiteException e) {
+            Log.d("profile error", e.getMessage());
+        }
+    }
+
+    public void updateProfile() {
+        try {
+            SQLiteDatabase db = SQLiteDatabase.openDatabase("/data/data/com.exercise.a1520/GameDB", null, SQLiteDatabase.CREATE_IF_NECESSARY);
+            db.execSQL(String.format("UPDATE Player SET name = '%s', country ='%s' WHERE id = %d", et_name.getText().toString(), spinner.getSelectedItem().toString(), id));
+            Log.d("DB of profile", "DB is ok");
+            db.close();
+        } catch (SQLiteException e) {
+            Log.d("profile error", e.getMessage());
+        }
+    }
+
+    public void onLoad() {
         try {
             SQLiteDatabase db = SQLiteDatabase.openDatabase("/data/data/com.exercise.a1520/GameDB", null, SQLiteDatabase.CREATE_IF_NECESSARY);
 
-//            db.execSQL("DROP TABLE IF EXISTS GameLog");
-//            db.execSQL("DROP TABLE IF EXISTS Player");
-            String sql = "INSERT INTO PLAYER VALUES(null,'" + name + "','" + country + "')";
-            db.execSQL(sql);
-            Log.d("DB of Register", sql);
+            Cursor c = db.rawQuery("SELECT * FROM Player", null);
+            c.moveToNext();
+            id = c.getInt(0);
+            et_name.setText(c.getString(1));
+            int selectedIdx = 0;
+            switch (c.getString(2)) {
+                case "HK":
+                case "Hong Kong":
+                    selectedIdx = 0;
+                    break;
+                case "UK":
+                case "United Kingdom":
+                    selectedIdx = 1;
+                    break;
+                case "JP":
+                case "Japan":
+                    selectedIdx = 2;
+                    break;
+                case "US":
+                case "United States":
+                    selectedIdx = 3;
+                    break;
+                case "CN":
+                case "China":
+                    selectedIdx = 4;
+                    break;
+            }
+            spinner.setSelection(selectedIdx);
+
+            Log.d("DB of profile", "DB is ok");
             db.close();
         } catch (SQLiteException e) {
-            Log.d("Register DB error", e.getMessage());
+            Log.d("profile error", e.getMessage());
         }
     }
+
 }

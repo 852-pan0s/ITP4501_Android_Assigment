@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 import android.support.v4.app.FragmentManager;
 
@@ -58,7 +59,9 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
         InputStream inputStream = null;
         String result = "";
         URL url = null;
+        Do:
         while (count >= 0) {
+            if (isCancelled()) break;
             try {
                 url = new URL(values[0]);
                 HttpURLConnection con = (HttpURLConnection) url.openConnection(); // Make GET request
@@ -70,28 +73,40 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
                 while ((line = bufferedReader.readLine()) != null) {
                     result += line;
                 }
-                Log.d("Download",result);
+                Log.d("Download", result);
+
                 try {
-                    MainActivity ma = (MainActivity) activity;
-                    ma.setJson(result);
-                    ma.startGame();
-                } catch (Exception ex) {
-                    try {
-                        GameActivity ga = (GameActivity) activity;
-                        ga.setOppGuessJson(result);
-                        result = "";
-                    } catch (Exception e) {
-                        String error = e.getMessage();
-                        Log.d("Download Error", error);
-                    }
+                    GameActivity ga = (GameActivity) activity;
+                    ga.setOppGuessJson(result);
+                    result = "";
+                    if (showDialog) ld.dismiss();
+                } catch (Exception e) {
+                    Log.d("Download Error", e.getMessage());
                 }
+
                 inputStream.close();
             } catch (Exception e) {
-                result = e.getMessage();
+                Log.d("Download Error", e.getMessage());
             }
             count--;
         }
-        if (showDialog) ld.dismiss();
+
+        try {
+            MainActivity ma = (MainActivity) activity;
+            ma.setJson(result);
+            ma.startGame();
+            if (showDialog) ld.dismiss();
+        } catch (Exception ex) {
+
+        }
         return result;
+    }
+
+    public void closeLoading() {
+        try {
+            ld.dismiss();
+        } catch (Exception e) {
+            Log.d("closeLoading", e.getMessage());
+        }
     }
 }

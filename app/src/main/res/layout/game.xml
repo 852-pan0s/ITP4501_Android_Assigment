@@ -5,150 +5,180 @@
     android:layout_height="match_parent"
     android:background="#000">
 
-    <ImageView
-        android:id="@+id/imgVsBar"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_centerHorizontal="true"
-        android:src="@drawable/vs"/>
-
-    <TextView
-        android:id="@+id/tv_round"
+    <RelativeLayout
+        android:id="@+id/ly_top_mid"
         android:layout_width="wrap_content"
-        android:layout_height="30dp"
-        android:layout_centerHorizontal="true"
-        android:gravity="center"
-        android:text="Round:0"
-        android:textColor="#fff"
-        android:textSize="25dp"
-        android:layout_above="@+id/imgRound"
-        />
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true">
+
+        <TextView
+            android:id="@+id/tv_winCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_toLeftOf="@+id/tv_hyphen"
+            android:fontFamily="MF QiHei(Noncommercial)"
+            android:gravity="center_horizontal"
+            android:text="0"
+            android:textColor="#fff"
+            android:textSize="25dp" />
+
+        <TextView
+            android:id="@+id/tv_hyphen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:fontFamily="MF QiHei(Noncommercial)"
+            android:gravity="center_horizontal"
+            android:text=" — "
+            android:textColor="#fff"
+            android:textSize="25dp" />
+
+        <TextView
+            android:id="@+id/tv_oppWinCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_toRightOf="@+id/tv_hyphen"
+            android:fontFamily="MF QiHei(Noncommercial)"
+            android:gravity="center_horizontal"
+            android:text="0"
+            android:textColor="#fff"
+            android:textSize="25dp" />
+
+        <ImageView
+            android:id="@+id/imgVsBar"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="15dp"
+            android:src="@drawable/vs" />
+
+        <TextView
+            android:id="@+id/tv_round"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_centerHorizontal="true"
+            android:text="Round:0"
+            android:textColor="#fff"
+            android:layout_below="@+id/imgVsBar"
+            android:layout_marginTop="-20dp"
+            android:textSize="25dp"/>
+
+    </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/ly_left"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="130dp"
         android:layout_marginRight="1dp"
-        android:layout_toLeftOf="@+id/imgVsBar"
-        android:layout_above="@+id/imgRound"
-        android:orientation="vertical">
+        android:layout_toLeftOf="@+id/ly_top_mid">
+
+        <ImageView
+            android:id="@+id/imgMyCountry"
+            android:layout_width="wrap_content"
+            android:layout_height="90dp"
+            android:src="@drawable/hk"
+            android:text="0" />
 
         <TextView
             android:id="@+id/tv_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/imgMyCountry"
             android:layout_centerHorizontal="true"
-            android:gravity="center"
-            android:fontFamily="MF QiHei(Noncommercial)"
             android:text="your name"
-            android:padding="5dp"
             android:textColor="#fff"
             android:textSize="25dp" />
-        <TextView
-            android:id="@+id/tv_winCount"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_centerHorizontal="true"
-            android:gravity="center_horizontal"
-            android:fontFamily="MF QiHei(Noncommercial)"
-            android:text="0"
-            android:textColor="#fff"
-            android:textSize="25dp"
-            android:layout_below="@+id/tv_name"/>
-
     </RelativeLayout>
+
     <RelativeLayout
         android:id="@+id/ly_right"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_toRightOf="@+id/imgVsBar"
+        android:layout_height="130dp"
         android:layout_above="@+id/imgRound"
+        android:layout_toRightOf="@+id/ly_top_mid"
         android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/imgOppCountry"
+            android:layout_width="wrap_content"
+            android:layout_height="90dp"
+            android:src="@drawable/hk"
+            android:text="0" />
 
         <TextView
             android:id="@+id/tv_oppName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:gravity="center"
             android:text="Opp name"
             android:textColor="#fff"
-            android:padding="5dp"
+            android:layout_below="@+id/imgOppCountry"
             android:textSize="25dp" />
-        <TextView
-            android:id="@+id/tv_oppWinCount"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_centerHorizontal="true"
-            android:gravity="center_horizontal"
-            android:fontFamily="MF QiHei(Noncommercial)"
-            android:text="0"
-            android:textColor="#fff"
-            android:textSize="25dp"
-            android:layout_below="@+id/tv_oppName"/>
+        />
     </RelativeLayout>
 
     <ImageView
         android:id="@+id/imgRound"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/imgVsBar"
-        android:src="@drawable/your_round"/>
+        android:layout_height="150dp"
+        android:layout_below="@+id/ly_left"
+        android:src="@drawable/your_round" />
+
     <ImageView
         android:id="@+id/opp_r_hand"
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_below="@+id/imgRound"
-        android:src="@drawable/r_rock_reverse"
-  />
+        android:src="@drawable/r_rock_reverse" />
 
     <ImageView
         android:id="@+id/opp_l_hand"
         android:layout_width="150dp"
         android:layout_height="150dp"
-        android:layout_marginLeft="120dp"
         android:layout_below="@+id/imgRound"
+        android:layout_marginLeft="120dp"
         android:layout_toEndOf="@+id/opp_r_hand"
-        android:src="@drawable/l_rock_reverse"/>
+        android:src="@drawable/l_rock_reverse" />
 
     <ImageView
         android:id="@+id/imgGuess"
-        android:layout_below="@+id/opp_l_hand"
         android:layout_width="300dp"
         android:layout_height="240dp"
+        android:layout_below="@+id/opp_l_hand"
         android:layout_centerHorizontal="true"
-        android:src="@drawable/guess_0"
-        />
+        android:src="@drawable/guess_0" />
+
     <ImageView
         android:id="@+id/imgAnswer"
         android:layout_width="300dp"
         android:layout_height="240dp"
-        android:src="@drawable/guess_answer"
         android:layout_below="@+id/opp_l_hand"
-        android:layout_centerHorizontal="true"/>
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/guess_answer" />
 
     <ImageView
         android:id="@+id/score_bar"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:layout_centerHorizontal="true"
-        android:layout_above="@+id/imgGuess" />
+        android:layout_above="@+id/imgGuess"
+        android:layout_centerHorizontal="true" />
 
     <ImageView
         android:id="@+id/my_l_hand"
-        android:layout_below="@+id/imgGuess"
         android:layout_width="150dp"
         android:layout_height="150dp"
+        android:layout_below="@+id/imgGuess"
         android:layout_centerVertical="true"
-        android:src="@drawable/l_rock"/>
+        android:src="@drawable/l_rock" />
 
     <ImageView
         android:id="@+id/my_r_hand"
-        android:layout_below="@+id/imgGuess"
         android:layout_width="150dp"
         android:layout_height="150dp"
+        android:layout_below="@+id/imgGuess"
         android:layout_centerVertical="true"
-        android:layout_toEndOf="@+id/opp_r_hand"
         android:layout_marginLeft="120dp"
-        android:src="@drawable/r_rock"/>
+        android:layout_toEndOf="@+id/opp_r_hand"
+        android:src="@drawable/r_rock" />
 </RelativeLayout>

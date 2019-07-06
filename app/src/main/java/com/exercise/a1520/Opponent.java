@@ -8,7 +8,7 @@ public class Opponent {
     private int right;
     private int guess;
 
-    public Opponent(String id, String name, String country, int left, int right, int guess){
+    public Opponent(String id, String name, String country, int left, int right, int guess) {
         this.id = id;
         this.name = name;
         this.country = country;
@@ -17,15 +17,15 @@ public class Opponent {
         this.guess = guess;
     }
 
-    public int getLeft(){
+    public int getLeft() {
         return left;
     }
 
-    public int getRight(){
+    public int getRight() {
         return right;
     }
 
-    public int getGuess(){
+    public int getGuess() {
         return guess;
     }
 }

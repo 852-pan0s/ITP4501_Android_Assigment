@@ -2,18 +2,64 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Register"
+        android:layout_centerHorizontal="true"
+        android:paddingTop="10dp"
+        android:textColor="#000"
+        android:textSize="36dp"
+        android:fontFamily="bold"/>
+    <ImageView
+        android:id="@+id/imgCountry"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/hk"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/tv_title"/>
+
+    <TextView
+        android:id="@+id/tv_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Name: "
+        android:paddingTop="10dp"
+        android:textColor="#000"
+        android:textSize="18dp"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/imgCountry"/>
 
     <EditText
         android:hint="Your name"
         android:id="@+id/et_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@+id/tv_name"
+        android:layout_below="@+id/imgCountry"
         android:text="Guest"/>
 
+    <TextView
+        android:id="@+id/tv_country"
+        android:layout_marginTop="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Country:  "
+        android:paddingTop="10dp"
+        android:textColor="#000"
+        android:textSize="18dp"
+        android:layout_below="@+id/tv_name"/>
+
     <Spinner
-        android:id="@+id/et_country"
+        android:id="@+id/spinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Guest"/>
+        android:layout_below="@+id/et_name"
+        android:layout_toRightOf="@+id/tv_country"
+        />
 </RelativeLayout>

@@ -3,6 +3,7 @@ package com.exercise.a1520;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
@@ -12,16 +13,14 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.format.Time;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 public class MainActivity extends AppCompatActivity implements RegisterDialog.RegisterListener {
     private LinearLayout draw;
@@ -30,9 +29,9 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
     private final int REQUEST_CODE = 8080;
     private DownloadTask task;
     private String name;
-    private String json;
-    private boolean startGame;
+    private String json = "";
     private boolean isLoading;
+    public static String[] playerInfo; //0=id, 1=name, 2= country
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,16 +49,31 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!isLoading) openDialog();
+                if (getPlayerInfo()) {
+                    downloadOpponent();
+                } else if (!isLoading) openDialog();
             }
         });
 
         btnStatistics.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(MainActivity.this ,StatisticsActivity.class);
+                Intent i = new Intent(MainActivity.this, StatisticsActivity.class);
 //                Intent i = new Intent(MainActivity.this, GameActivity.class);
                 startActivity(i);
+            }
+        });
+
+        btnProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!getPlayerInfo()) {
+                    openDialog();
+                } else {
+                    ProfileDialog pd = new ProfileDialog();
+                    pd.setActivity(MainActivity.this);
+                    pd.show(getSupportFragmentManager(), "Profile");
+                }
             }
         });
 
@@ -74,8 +88,7 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
     }
 
     public void openDialog() {
-        RegisterDialog rd = new RegisterDialog();
-        rd.show(getSupportFragmentManager(), "Register");
+        new RegisterDialog().show(getSupportFragmentManager(), "Register");
     }
 
     public String getName() {
@@ -99,11 +112,13 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
         try {
             SQLiteDatabase db = SQLiteDatabase.openDatabase("/data/data/com.exercise.a1520/GameDB", null, SQLiteDatabase.CREATE_IF_NECESSARY);
 
+//            db.execSQL("DROP TABLE IF EXISTS GameLog");
+//            db.execSQL("DROP TABLE IF EXISTS Player");
             db.execSQL("CREATE TABLE IF NOT EXISTS GameLog (gameDate TEXT, gameTime TEXT, opponentName TEXT, winOrLose INTEGER, PRIMARY KEY(gameDate,gameTime));");
-            db.execSQL("DELETE FROM GameLog");
-            Cursor c = db.rawQuery("select * from GameLog ORDER BY gameDate, gameTime", null);
-            c.moveToNext();
-            Log.d("DB of MainActivity","DB is ok");
+            db.execSQL("CREATE TABLE IF NOT EXISTS Player (id INTEGER PRIMARY KEY AUTOINCREMENT ,name TEXT, country TEXT);");
+            //Cursor c = db.rawQuery("select * from GameLog ORDER BY gameDate, gameTime", null);
+            //c.moveToNext();
+            Log.d("DB of MainActivity", "DB is ok");
             db.close();
         } catch (SQLiteException e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
@@ -111,40 +126,67 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
     }
 
     @Override
-    public void getText(String name, boolean isName) {
-        if (isName && (task == null || task.getStatus().equals(AsyncTask.Status.FINISHED))) {
-            setName(name);
-            task = new DownloadTask(this, getSupportFragmentManager(),true);
-            task.execute(getResources().getString(R.string.json_src) + "0");
-            startGame = false;
-        } else {
+    public void getText(boolean isName) {
+        if (!isName) {
             openDialog();
-            Toast.makeText(getApplication(), name, Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplication(), getResources().getString(R.string.emptyName), Toast.LENGTH_LONG).show();
+        } else {
+            downloadOpponent();
         }
+    }
+
+    public void downloadOpponent() {
+        if (task == null || task.getStatus().equals(AsyncTask.Status.FINISHED)) {
+            task = new DownloadTask(this, getSupportFragmentManager(), true);
+            task.execute(getResources().getString(R.string.json_src) + "0");
+        }
+    }
+
+    public static boolean getPlayerInfo() {
+        playerInfo = new String[3];
+        try {
+            SQLiteDatabase db = SQLiteDatabase.openDatabase("/data/data/com.exercise.a1520/GameDB", null, SQLiteDatabase.CREATE_IF_NECESSARY);
+            Cursor c = db.rawQuery("SELECT * FROM Player", null);
+            try {
+                c.moveToNext();
+                playerInfo[0] = c.getString(0);
+                playerInfo[1] = c.getString(1);
+                playerInfo[2] = c.getString(2);
+                Log.d("getPlayerInfo", String.format("ID:%s, Name:%s ,Country:%s", playerInfo[0], playerInfo[1], playerInfo[2]));
+                db.close();
+                return true;
+            } catch (CursorIndexOutOfBoundsException e) {
+                Log.d("Cursor exp", "No record.");
+            }
+        } catch (SQLiteException e) {
+            Log.d("getPlayerInfo ERROR", e.getMessage());
+        }
+        return false;
     }
 
     public void startGame() {
-        if (!startGame) {
-            startGame = true;
+        if (json.length() > 0) {
             Intent i = new Intent(MainActivity.this, GameActivity.class);
-            i.putExtra("name", name);
             i.putExtra("JSON", json);
             //Toast.makeText(getApplication(), json, Toast.LENGTH_LONG).show();
-            startActivityForResult(i,500);
+//            startActivityForResult(i,500);
+            startActivity(i);
+        } else {
+            Toast.makeText(this, "Server connection error. Please try in a few minutes later.", Toast.LENGTH_LONG).show();
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK) {
-            if (data.hasExtra("gameFinish")) {
-                Log.d("MainActivity","restart");
-                Intent i = getIntent();
-                finish();
-                startActivity(i);
-            }
-        }
-    }
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        if (resultCode == RESULT_OK) {
+//            if (data.hasExtra("gameFinish")) {
+//                Log.d("MainActivity","restart");
+//                Intent i = getIntent();
+//                finish();
+//                startActivity(i);
+//            }
+//        }
+//    }
 
     class StartIcon extends View {
         private boolean paper;
