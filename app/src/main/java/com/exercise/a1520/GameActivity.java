@@ -47,7 +47,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
 
     private Object[][] player;
 
-    private boolean myRound;
+    private boolean myRound, gameOver;
     private Handler mHandler = new Handler();
     private ImageView imgStart;
     private int[] imgStartSrc = {R.drawable.t3, R.drawable.t2, R.drawable.t1, R.drawable.tstart};
@@ -125,7 +125,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
 
     public void initGame() {
         //set onclike listener for each hand image view
-        mHandler.postDelayed(timerStart,10);
+        mHandler.postDelayed(timerStart,0);
         int i = 0;
         for (final ImageView hiv : imgHand) {
             final int x = i++;
@@ -148,11 +148,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
                             }
                         }
                     } else {
-                        if (win[0] > 1 || win[1] > 1) {
-                            cd.show(getSupportFragmentManager(), "Continue");
-                        } else {
-                            roundStart();
-                        }
+                        onClickCloudEvent();
                     }
                 }
             });
@@ -162,25 +158,31 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
         imgGuess.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (opps.size() > 0) {
-                    if (win[0] > 1 || win[1] > 1) {
-                        cd.show(getSupportFragmentManager(), "Continue");
-                    } else {
-                        if (myRound) {
-                            myGuess = getActualHand();
-                        }
-                        roundStart();
-                    }
-                } else {
-                    Toast.makeText(GameActivity.this, "Loading... Please wate...", Toast.LENGTH_SHORT).show();
-                }
+                onClickCloudEvent();
             }
         });
+    }
+
+    public void onClickCloudEvent(){
+        timer.setProgress(250);
+        if (opps.size() > 0) {
+            if (win[0] > 1 || win[1] > 1) {
+                cd.show(getSupportFragmentManager(), "Continue");
+            } else {
+                if (myRound) {
+                    myGuess = getActualHand();
+                }
+                roundStart();
+            }
+        } else {
+            Toast.makeText(GameActivity.this, "Loading... Please wate...", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private Runnable timerAnimation = new Runnable() {
         @Override
         public void run() {
+            if(gameOver) return;
             if (imgStartSrcIdx < 4) { //4
                 imgStart.setImageResource(imgStartSrc[imgStartSrcIdx++]);
                 ObjectAnimator[] animators = new ObjectAnimator[2];
@@ -205,6 +207,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
     private Runnable repeatAnimation = new Runnable() {
         @Override
         public void run() {
+            if(gameOver) return;
             ObjectAnimator[] animators = new ObjectAnimator[imgHand.length * 2];
 
             animators[0] = ObjectAnimator.ofFloat(imgHand[0], "rotation", 0, -10f);
@@ -250,12 +253,14 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
     private Runnable timerStart = new Runnable() {
         @Override
         public void run() {
+            if(gameOver) return;
             if(timer.getProgress() == 0){
-                timer.setProgress(100);
-            }else{
+                timer.setProgress(250);
+                onClickCloudEvent();
+            }else {
                 timer.setProgress(timer.getProgress()-1);
-                mHandler.postDelayed(timerStart,10);
             }
+            mHandler.postDelayed(timerStart,1);
         }
     };
 
@@ -471,6 +476,8 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
                 if (++win[0] >= 2) {
                     imgRound.setImageResource(R.drawable.you_win);
                     saveGameLog(1);
+                    gameOver=true;
+                    cd.show(getSupportFragmentManager(), "Continue");
                 }
             } else {
                 imgStart.setImageResource(R.drawable.minus1);
@@ -484,6 +491,8 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
                 if (++win[1] >= 2) {
                     imgRound.setImageResource(R.drawable.you_lose);
                     saveGameLog(0);
+                    gameOver=true;
+                    cd.show(getSupportFragmentManager(), "Continue");
                 }
             } else {
                 imgStart.setImageResource(R.drawable.minus1);
@@ -505,6 +514,10 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
     @Override
     public void continueGame(boolean isContinue) {
         if (isContinue) {
+            gameOver = false;
+            //initGame();
+            mHandler.postDelayed(timerStart,0);
+            mHandler.postDelayed(repeatAnimation, 0);
             if (!myRound) switchPlayer();
             roundStart();
             for (int i = 0; i < win.length; i++) {
@@ -527,6 +540,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
 
     public void onBackPressed() {
         //not allow pressing the back button
+        gameOver=true;
         task.cancel(true);
         task = null;
         finish();

@@ -8,6 +8,19 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+
+    <!--<style name="MyStyle">-->
+        <!--<item name="colorButtonNormal">#ff5aa25f</item>-->
+        <!--<item name="colorControlHighlight">#ffd9f0db</item>-->
+        <!--<item name="android:colorBackground">#ff5aa25f</item>-->
+    <!--</style>-->
+
+    <style name="MyStyle" parent="Theme.AppCompat.Light">
+        <item name="android:textColor">@color/colorAccent</item>
+        <item name="android:textAlignment">textStart</item>
+    </style>
+
+
     <style name="ProgressTheme" parent="Widget.AppCompat.ProgressBar">
 
     </style>

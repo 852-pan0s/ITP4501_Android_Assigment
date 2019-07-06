@@ -132,9 +132,9 @@
         android:indeterminate="false"
         android:layout_below="@+id/ly_top_mid"
         android:layout_centerHorizontal="true"
-        android:max="5000"
+        android:max="250"
         android:min="0"
-        android:progress="100"
+        android:progress="250"
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
         />
 
