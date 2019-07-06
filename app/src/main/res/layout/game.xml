@@ -3,7 +3,7 @@
     android:id="@+id/RelativeLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000">
+    android:background="@drawable/background">
 
     <RelativeLayout
         android:id="@+id/ly_top_mid"
@@ -20,7 +20,7 @@
             android:fontFamily="MF QiHei(Noncommercial)"
             android:gravity="center_horizontal"
             android:text="0"
-            android:textColor="#fff"
+            android:textColor="#000"
             android:textSize="25dp" />
 
         <TextView
@@ -31,7 +31,7 @@
             android:fontFamily="MF QiHei(Noncommercial)"
             android:gravity="center_horizontal"
             android:text=" — "
-            android:textColor="#fff"
+            android:textColor="#000"
             android:textSize="25dp" />
 
         <TextView
@@ -43,7 +43,7 @@
             android:fontFamily="MF QiHei(Noncommercial)"
             android:gravity="center_horizontal"
             android:text="0"
-            android:textColor="#fff"
+            android:textColor="#000"
             android:textSize="25dp" />
 
         <ImageView
@@ -59,7 +59,7 @@
             android:layout_height="30dp"
             android:layout_centerHorizontal="true"
             android:text="Round:0"
-            android:textColor="#fff"
+            android:textColor="#000"
             android:layout_below="@+id/imgVsBar"
             android:layout_marginTop="-20dp"
             android:textSize="25dp"/>
@@ -87,7 +87,7 @@
             android:layout_below="@+id/imgMyCountry"
             android:layout_centerHorizontal="true"
             android:text="your name"
-            android:textColor="#fff"
+            android:textColor="#000"
             android:textSize="25dp" />
     </RelativeLayout>
 
@@ -112,7 +112,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:text="Opp name"
-            android:textColor="#fff"
+            android:textColor="#000"
             android:layout_below="@+id/imgOppCountry"
             android:textSize="25dp" />
         />
@@ -124,6 +124,19 @@
         android:layout_height="150dp"
         android:layout_below="@+id/ly_left"
         android:src="@drawable/your_round" />
+
+    <ProgressBar
+        android:id="@+id/timer"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:indeterminate="false"
+        android:layout_below="@+id/ly_top_mid"
+        android:layout_centerHorizontal="true"
+        android:max="5000"
+        android:min="0"
+        android:progress="100"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        />
 
     <ImageView
         android:id="@+id/opp_r_hand"
@@ -163,6 +176,13 @@
         android:layout_height="100dp"
         android:layout_above="@+id/imgGuess"
         android:layout_centerHorizontal="true" />
+    <ImageView
+        android:id="@+id/timerStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imgRound"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/t1"/>
 
     <ImageView
         android:id="@+id/my_l_hand"
