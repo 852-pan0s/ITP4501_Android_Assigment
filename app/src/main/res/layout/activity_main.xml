@@ -7,6 +7,12 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <RelativeLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="480dp">
+    </RelativeLayout>
+
     <LinearLayout
         android:id="@+id/draw"
         android:layout_width="fill_parent"
@@ -37,10 +43,18 @@
         android:text="Profile" />
 
     <Button
-        android:id="@+id/btnQuit"
+        android:id="@+id/btnClear"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/btnProfile"
+        android:layout_centerHorizontal="true"
+        android:text="Clear Record" />
+
+    <Button
+        android:id="@+id/btnQuit"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnClear"
         android:layout_centerHorizontal="true"
         android:text="Quit" />
 

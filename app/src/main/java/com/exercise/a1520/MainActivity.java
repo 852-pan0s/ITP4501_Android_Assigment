@@ -22,10 +22,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class MainActivity extends AppCompatActivity implements RegisterDialog.RegisterListener {
+public class MainActivity extends AppCompatActivity implements RegisterDialog.RegisterListener, ConfirmDialog.ConfirmListener {
     private LinearLayout draw;
     private TextView tv_name;
-    private Button btnStart, btnStatistics, btnProfile, btnQuit;
+    private Button btnStart, btnStatistics, btnProfile,btnClear, btnQuit;
     private final int REQUEST_CODE = 8080;
     private DownloadTask task;
     private String name;
@@ -44,7 +44,9 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
         btnStart = findViewById(R.id.btnStart);
         btnStatistics = findViewById(R.id.btnStatistics);
         btnProfile = findViewById(R.id.btnProfile);
+        btnClear = findViewById(R.id.btnClear);
         btnQuit = findViewById(R.id.btnQuit);
+
         draw.addView(new StartIcon(this));
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
         btnStatistics.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(MainActivity.this, StatisticsActivity.class);
+                Intent i = new Intent(MainActivity.this, GameLogActivity.class);
 //                Intent i = new Intent(MainActivity.this, GameActivity.class);
                 startActivity(i);
             }
@@ -77,6 +79,13 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
             }
         });
 
+        btnClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new ConfirmDialog().show(getSupportFragmentManager(), "Confirm");
+            }
+        });
+
         btnQuit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -84,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
             }
         });
 
-        initialDB();
+        initialDB(false);
     }
 
     public void openDialog() {
@@ -107,13 +116,15 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
         this.json = json;
     }
 
-    public void initialDB() {
+    public void initialDB(boolean init) {
         // Create a database if it does not exist
         try {
             SQLiteDatabase db = SQLiteDatabase.openDatabase("/data/data/com.exercise.a1520/GameDB", null, SQLiteDatabase.CREATE_IF_NECESSARY);
 
-//            db.execSQL("DROP TABLE IF EXISTS GameLog");
-//            db.execSQL("DROP TABLE IF EXISTS Player");
+            if (init) {
+                db.execSQL("DROP TABLE IF EXISTS GameLog");
+                db.execSQL("DROP TABLE IF EXISTS Player");
+            }
             db.execSQL("CREATE TABLE IF NOT EXISTS GameLog (gameDate TEXT, gameTime TEXT, opponentName TEXT, winOrLose INTEGER, PRIMARY KEY(gameDate,gameTime));");
             db.execSQL("CREATE TABLE IF NOT EXISTS Player (id INTEGER PRIMARY KEY AUTOINCREMENT ,name TEXT, country TEXT);");
             //Cursor c = db.rawQuery("select * from GameLog ORDER BY gameDate, gameTime", null);
@@ -173,6 +184,14 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
             startActivity(i);
         } else {
             Toast.makeText(this, "Server connection error. Please try in a few minutes later.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void confirm(boolean isYes) {
+        if (isYes) {
+            initialDB(true);
+            Toast.makeText(this,"All records hav been cleared.",Toast.LENGTH_LONG).show();
         }
     }
 

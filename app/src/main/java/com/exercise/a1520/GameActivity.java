@@ -49,7 +49,6 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
         super.onCreate(savedInstanceState);
         setContentView(R.layout.game);
         getSupportActionBar().hide();
-        long startTime = System.currentTimeMillis();
         Intent intent = getIntent();
         json = intent.getStringExtra("JSON");
         opponentInfo = new String[4];
@@ -160,7 +159,6 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
 
         setOpponent();
         downloadGuess(10, false);
-        saveGameLog(1);
     }
 
     public void setCountryImg() {
@@ -349,7 +347,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
             if (roundHand == myGuess) {
                 if (++win[0] >= 2) {
                     imgRound.setImageResource(R.drawable.you_win);
-                    saveGameLog(0);
+                    saveGameLog(1);
                 }
             } else {
                 win[0] = 0;
@@ -359,7 +357,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
             if (roundHand == oppGuess) {
                 if (++win[1] >= 2) {
                     imgRound.setImageResource(R.drawable.you_lose);
-                    saveGameLog(1);
+                    saveGameLog(0);
                 }
             } else {
                 win[1] = 0;
@@ -408,15 +406,20 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
         super.onBackPressed();
     }
 
-    public void saveGameLog(int lose) {
+    public void saveGameLog(int win) {
         Date now = Calendar.getInstance().getTime();
-        String currentDate = now.getDate() + "-" + now.getMonth() + "-" + Calendar.getInstance().getWeekYear();
-        String curretnTime = now.getHours() + ":" + now.getMinutes();
+        String date = ""+ (now.getDate()>10?now.getDate():"0"+now.getDate());
+        String month = ""+ (now.getMonth()>10?now.getMonth():"0"+now.getMonth());
+        String hour = ""+(now.getHours()>10?now.getHours():"0"+now.getHours());
+        String minute = ""+(now.getMinutes()>10?now.getMinutes():"0"+now.getMinutes());
+        String second = ""+(now.getSeconds()>10?now.getSeconds():"0"+now.getSeconds());
+        String currentDate = date + "-" + month + "-" + Calendar.getInstance().getWeekYear();
+        String curretnTime = hour + ":" + minute+":"+second;
 
         try {
             SQLiteDatabase db = SQLiteDatabase.openDatabase("/data/data/com.exercise.a1520/GameDB", null, SQLiteDatabase.CREATE_IF_NECESSARY);
             // GameLog (gameDate TEXT, gameTime TEXT, opponentName TEXT, winOrLose INTEGER, PRIMARY KEY(gameDate,gameTime));");
-            String sql = String.format("INSERT INTO GameLog VALUES('%s','%s','%s',%d)", currentDate, curretnTime, opponentInfo[1], lose);
+            String sql = String.format("INSERT INTO GameLog VALUES('%s','%s','%s',%d)", currentDate, curretnTime, opponentInfo[1], win);
             db.execSQL(sql);
             Log.d("DB of Game", sql);
             db.close();

@@ -43,9 +43,9 @@ public class StatisticsActivity extends AppCompatActivity {
             Cursor c = db.rawQuery("SELECT COUNT(*) AS 'winOrLose'FROM GameLog GROUP BY winOrLose ORDER BY winOrLose ASC", null);
             try {
                 c.moveToNext();
-                win = c.getString(0);
-                c.moveToNext();
                 lose = c.getString(0);
+                c.moveToNext();
+                win = c.getString(0);
                 Log.d("DB of profile", "DB is ok");
             } catch (CursorIndexOutOfBoundsException ce) {
                 Log.d("Statistics Error", ce.getMessage());
@@ -117,9 +117,12 @@ public class StatisticsActivity extends AppCompatActivity {
 
             //draw title
             float fSizeTitle = 64;
-            paint.setTextSize(fSizeTitle);
-            paint.setTextAlign(Paint.Align.CENTER);
-            canvas.drawText("Statistics of Win and Lose", chartStartX + chartStopX / 2f - fSizeTitle, chartStopY - fSizeTitle, paint);
+            Paint titlePaint = new Paint();
+            titlePaint.setFlags(Paint.UNDERLINE_TEXT_FLAG);
+            titlePaint.setTextSize(fSizeTitle);
+            titlePaint.setTextAlign(Paint.Align.CENTER);
+
+            canvas.drawText(getResources().getString(R.string.chart_title), chartStartX + chartStopX / 2f - fSizeTitle, chartStopY - fSizeTitle, titlePaint);
 
             //set paint for draw the text of axis Y
             paint.setTextAlign(Paint.Align.RIGHT);
@@ -202,7 +205,7 @@ public class StatisticsActivity extends AppCompatActivity {
                         Log.d("seriesStartY", "" + percent);
                     }
                     //draw the number on the top of the series
-                    paint.setTextAlign(Paint.Align.CENTER);
+//                    paint.setTextAlign(Paint.Align.CENTER);
                     paint.setColor(Color.BLACK);
                     canvas.drawText(i == 1 ? win : lose, seriesStopX-fSize*1.7f, seriesStopY, paint);
                 }
@@ -210,16 +213,16 @@ public class StatisticsActivity extends AppCompatActivity {
 
             //draw legend
             paint.setTextAlign(Paint.Align.LEFT);
-            paint.setColor(seriesColor[0]); //square
+            paint.setColor(seriesColor[0]); //square for the first series
             canvas.drawRect(chartStartX, chartStartY + 200, chartStartX + 40, chartStartY + 240, paint);
-            paint.setColor(seriesColor[1]); //square
+            paint.setColor(seriesColor[1]); //square for the second series
             canvas.drawRect(chartStartX, chartStartY + 270, chartStartX + 40, chartStartY + 310, paint);
             paint.setColor(Color.BLACK); //text
             float legendStopY = chartStartY + 310;
             canvas.drawText(seriesName[0], chartStartX + 80, chartStartY + 240, paint);
             canvas.drawText(seriesName[1], chartStartX + 80, legendStopY, paint);
 
-            
+
         }
 
         public boolean onTouchEvent(MotionEvent event) {
