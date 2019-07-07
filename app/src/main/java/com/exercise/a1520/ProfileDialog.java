@@ -24,22 +24,24 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class ProfileDialog extends DialogFragment {
-    private EditText et_name;
+    private EditText et_name, et_dob, et_phone, et_email;
     private String[] countries;
     private Spinner spinner;
     private ImageView imgCountry;
     private TextView tv_title;
     private AppCompatActivity activity;
     private int id;
+
     @Override
     public void show(FragmentManager manager, String tag) {
         try {
             manager.beginTransaction().remove(this).commit();
         } catch (Exception e) {
-            Log.e("Dialog","  has not been shown");
+            Log.e("Dialog", "  has not been shown");
         }
         super.show(manager, tag);
     }
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -74,6 +76,9 @@ public class ProfileDialog extends DialogFragment {
         countries = getResources().getStringArray(R.array.country);
         spinner = view.findViewById(R.id.spinner);
         et_name = view.findViewById(R.id.et_name);
+        et_dob = view.findViewById(R.id.et_dob);
+        et_email = view.findViewById(R.id.et_email);
+        et_phone = view.findViewById(R.id.et_phone);
         imgCountry = view.findViewById(R.id.imgCountry);
         tv_title = view.findViewById(R.id.tv_title);
         tv_title.setText("Profile");
@@ -136,8 +141,14 @@ public class ProfileDialog extends DialogFragment {
     public void updateProfile() {
         try {
             SQLiteDatabase db = SQLiteDatabase.openDatabase("/data/data/com.exercise.a1520/GameDB", null, SQLiteDatabase.CREATE_IF_NECESSARY);
-            db.execSQL(String.format("UPDATE Player SET name = '%s', country ='%s' WHERE id = %d", et_name.getText().toString(), spinner.getSelectedItem().toString(), id));
-            Log.d("DB of profile", "DB is ok");
+            String name = et_name.getText().toString();
+            String country = spinner.getSelectedItem().toString();
+            String dob = et_dob.getText().toString();
+            String phone = et_phone.getText().toString();
+            String email = et_email.getText().toString();
+            String sql = String.format("UPDATE Player SET name ='%s', country = '%s',dob = '%s',phone = '%s', email = '%s' WHERE id = %d", name, country, dob, phone, email, id);
+            db.execSQL(sql);
+            Log.d("DB of profile", sql);
             db.close();
         } catch (SQLiteException e) {
             Log.d("profile error", e.getMessage());
@@ -152,6 +163,10 @@ public class ProfileDialog extends DialogFragment {
             c.moveToNext();
             id = c.getInt(0);
             et_name.setText(c.getString(1));
+            et_dob.setText(c.getString(3));
+            et_phone.setText(c.getString(4));
+            et_email.setText(c.getString(5));
+
             int selectedIdx = 0;
             switch (c.getString(2)) {
                 case "HK":

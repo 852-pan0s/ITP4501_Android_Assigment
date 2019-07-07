@@ -192,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
                 db.execSQL("DROP TABLE IF EXISTS Player");
             }
             db.execSQL("CREATE TABLE IF NOT EXISTS GameLog (gameDate TEXT, gameTime TEXT, opponentName TEXT, winOrLose INTEGER, PRIMARY KEY(gameDate,gameTime));");
-            db.execSQL("CREATE TABLE IF NOT EXISTS Player (id INTEGER PRIMARY KEY AUTOINCREMENT ,name TEXT, country TEXT);");
+            db.execSQL("CREATE TABLE IF NOT EXISTS Player (id INTEGER PRIMARY KEY AUTOINCREMENT ,name TEXT, country TEXT,dob TEXT, phone TEXT, email TEXT);");
             //Cursor c = db.rawQuery("select * from GameLog ORDER BY gameDate, gameTime", null);
             //c.moveToNext();
             Log.d("DB of MainActivity", "DB is ok");

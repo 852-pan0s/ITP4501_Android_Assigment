@@ -62,4 +62,64 @@
         android:layout_below="@+id/et_name"
         android:layout_toRightOf="@+id/tv_country"
         />
+
+    <TextView
+        android:id="@+id/tv_dob"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Birthday: "
+        android:paddingTop="10dp"
+        android:textColor="#000"
+        android:textSize="18dp"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/tv_country"/>
+
+
+    <EditText
+        android:hint="yyyy-mm-dd"
+        android:id="@+id/et_dob"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@+id/tv_dob"
+        android:layout_below="@+id/tv_country" />
+    <TextView
+        android:id="@+id/tv_phone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Phone No.: "
+        android:paddingTop="10dp"
+        android:textColor="#000"
+        android:textSize="18dp"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/tv_dob"/>
+
+    <EditText
+        android:id="@+id/et_phone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@+id/tv_phone"
+        android:layout_below="@+id/tv_dob"
+        android:inputType="textPhonetic" />
+
+    <TextView
+        android:id="@+id/tv_email"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Email "
+        android:paddingTop="10dp"
+        android:textColor="#000"
+        android:textSize="18dp"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/tv_phone"/>
+
+    <EditText
+        android:id="@+id/et_email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@+id/tv_email"
+        android:layout_below="@+id/tv_phone"
+        android:inputType="textEmailAddress" />
 </RelativeLayout>

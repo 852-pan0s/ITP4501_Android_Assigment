@@ -24,7 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class RegisterDialog extends DialogFragment {
-    private EditText et_name;
+    private EditText et_name,et_dob,et_phone,et_email;
     private RegisterListener listener;
     private String[] countries;
     private Spinner spinner;
@@ -69,6 +69,9 @@ public class RegisterDialog extends DialogFragment {
         countries = getResources().getStringArray(R.array.country);
         spinner = view.findViewById(R.id.spinner);
         et_name = view.findViewById(R.id.et_name);
+        et_dob = view.findViewById(R.id.et_dob);
+        et_email = view.findViewById(R.id.et_email);
+        et_phone = view.findViewById(R.id.et_phone);
         imgCountry = view.findViewById(R.id.imgCountry);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getActivity(), android.R.layout.simple_list_item_1, countries);
@@ -127,13 +130,16 @@ public class RegisterDialog extends DialogFragment {
         // Create a database if it does not exist
         String name = et_name.getText().toString();
         String country = spinner.getSelectedItem().toString();
+        String dob = et_dob.getText().toString();
+        String phone = et_phone.getText().toString();
+        String email = et_email.getText().toString();
         if (country.length() == 0) country = countries[0];
         try {
             SQLiteDatabase db = SQLiteDatabase.openDatabase("/data/data/com.exercise.a1520/GameDB", null, SQLiteDatabase.CREATE_IF_NECESSARY);
 
 //            db.execSQL("DROP TABLE IF EXISTS GameLog");
 //            db.execSQL("DROP TABLE IF EXISTS Player");
-            String sql = "INSERT INTO PLAYER VALUES(null,'" + name + "','" + country + "')";
+            String sql = String.format("INSERT INTO PLAYER VALUES(null,'%s','%s','%s','%s','%s')",name,country,dob,phone,email);
             db.execSQL(sql);
             Log.d("DB of Register", sql);
             db.close();
