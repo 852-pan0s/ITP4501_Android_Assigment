@@ -40,12 +40,14 @@ public class StatisticsActivity extends AppCompatActivity {
         try {
             SQLiteDatabase db = SQLiteDatabase.openDatabase("/data/data/com.exercise.a1520/GameDB", null, SQLiteDatabase.CREATE_IF_NECESSARY);
 // GameLog (gameDate TEXT, gameTime TEXT, opponentName TEXT, winOrLose INTEGER, PRIMARY KEY(gameDate,gameTime));");
-            Cursor c = db.rawQuery("SELECT COUNT(*) AS 'winOrLose'FROM GameLog GROUP BY winOrLose ORDER BY winOrLose ASC", null);
+            Cursor c1 = db.rawQuery("SELECT COUNT(*) AS 'winOrLose'FROM GameLog GROUP BY winOrLose HAVING winOrLose ='0'", null);
+            Cursor c2 = db.rawQuery("SELECT COUNT(*) AS 'winOrLose'FROM GameLog GROUP BY winOrLose HAVING winOrLose ='1'", null);
+
             try {
-                c.moveToNext();
-                lose = c.getString(0);
-                c.moveToNext();
-                win = c.getString(0);
+                c1.moveToNext();
+                c2.moveToNext();
+                lose = c1.getString(0);
+                win = c2.getString(0);
                 Log.d("DB of profile", "DB is ok");
             } catch (CursorIndexOutOfBoundsException ce) {
                 Log.d("Statistics Error", ce.getMessage());
