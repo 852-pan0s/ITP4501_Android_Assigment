@@ -31,7 +31,6 @@ public class StatisticsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(new DrawableView(this));
         getSupportActionBar().hide();
-        setChartAxisY();
         setDate();
 
     }
@@ -45,8 +44,13 @@ public class StatisticsActivity extends AppCompatActivity {
 
             try {
                 c1.moveToNext();
-                c2.moveToNext();
                 lose = c1.getString(0);
+                Log.d("DB of profile", "DB is ok");
+            } catch (CursorIndexOutOfBoundsException ce) {
+                Log.d("Statistics Error", ce.getMessage());
+            }
+            try {
+                c2.moveToNext();
                 win = c2.getString(0);
                 Log.d("DB of profile", "DB is ok");
             } catch (CursorIndexOutOfBoundsException ce) {
@@ -56,6 +60,7 @@ public class StatisticsActivity extends AppCompatActivity {
         } catch (SQLiteException e) {
             Log.d("profile error", e.getMessage());
         }
+        setChartAxisY();
     }
 
     public int getMax(int n1, int n2) {
@@ -87,7 +92,6 @@ public class StatisticsActivity extends AppCompatActivity {
             return cardinalNum;
         }
         int maxchartAxisY = 0;
-        int i = 0;
         while (max > 0) {
             maxchartAxisY += cardinalNum;
             max -= cardinalNum;

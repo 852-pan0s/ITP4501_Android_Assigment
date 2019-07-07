@@ -163,6 +163,24 @@
         android:src="@drawable/guess_0" />
 
     <ImageView
+        android:id="@+id/imgMinus"
+        android:layout_width="80dp"
+        android:layout_height="240dp"
+        android:layout_below="@+id/opp_l_hand"
+        android:layout_toLeftOf="@+id/ly_top_mid"
+        android:layout_marginRight="20dp"
+        android:src="@drawable/minus" />
+
+    <ImageView
+        android:id="@+id/imgPlus"
+        android:layout_width="80dp"
+        android:layout_height="240dp"
+        android:layout_below="@+id/opp_l_hand"
+        android:layout_toRightOf="@+id/ly_top_mid"
+        android:layout_marginLeft="20dp"
+        android:src="@drawable/plus" />
+
+    <ImageView
         android:id="@+id/imgAnswer"
         android:layout_width="300dp"
         android:layout_height="240dp"

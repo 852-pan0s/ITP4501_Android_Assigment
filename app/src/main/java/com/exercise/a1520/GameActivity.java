@@ -34,7 +34,7 @@ import java.util.LinkedList;
 public class GameActivity extends AppCompatActivity implements ContinueDialog.ContinueListener {
     private ImageView[] imgHand; //0: my right hand, 1: my left hand, 2: opp right hand, 3: opp left hand
     private int[] isRock, imgSrc, win;  // 0: my right hand, 1: my left hand, 2: opp right hand, 3: opp left hand // image source //0 = I win, 1= opponent wins
-    private ImageView imgGuess, imgRound, imgAnswer, imgMyCountry, imgOppCountry; //guess view //round img //answer background
+    private ImageView imgGuess, imgRound, imgAnswer, imgMyCountry, imgOppCountry, imgPlus, imgMinus; //guess view //round img //answer background
     private String myName, myCountry, json, srcLink;
     private String[] opponentInfo; // [0] = id; [1] = name; ; [2] = country
     private DownloadTask task;
@@ -42,7 +42,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
     private boolean isLoading, resultOk, isRoundEnd, isStopAnimation;
     private ContinueDialog cd;
     private TextView tv_name, tv_oppName, tv_winCount, tv_oppWinCount, tv_round;
-
+    private ImageView clickImg;
     private LinkedList<Opponent> opps;
 
     private Object[][] player;
@@ -81,13 +81,16 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
         imgMyCountry = findViewById(R.id.imgMyCountry);
         imgOppCountry = findViewById(R.id.imgOppCountry);
         imgStart = findViewById(R.id.timerStart);
+        imgPlus = findViewById(R.id.imgPlus);
+        imgMinus = findViewById(R.id.imgMinus);
+
         tv_name = findViewById(R.id.tv_name);
         tv_oppName = findViewById(R.id.tv_oppName);
         tv_winCount = findViewById(R.id.tv_winCount);
         tv_oppWinCount = findViewById(R.id.tv_oppWinCount);
         tv_round = findViewById(R.id.tv_round);
         timer = findViewById(R.id.timer);
-        imgAnswer.setImageDrawable(null);
+        showYouGuess();
 
         tv_name.setText(myName);
         try {
@@ -125,10 +128,11 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
 
     public void initGame() {
         //set onclike listener for each hand image view
-        mHandler.postDelayed(timerStart,0);
+        mHandler.postDelayed(timerStart, 0);
         int i = 0;
         for (final ImageView hiv : imgHand) {
             final int x = i++;
+            if (x >= 2) break; //dont set for opponent
             hiv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -143,9 +147,6 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
                                 hiv.setImageResource(imgSrc[x]);
                                 isRock[x] = 0;
                             }
-                            if (myRound) {
-                                setGuessImg();
-                            }
                         }
                     } else {
                         onClickCloudEvent();
@@ -153,6 +154,33 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
                 }
             });
         }
+
+        imgPlus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (myRound && myGuess < 20) {
+                    myGuess += 5;
+                    clickImg = imgPlus;
+                    setGuessImg();
+                }
+                mHandler.removeCallbacks(clickAnimation);
+                mHandler.postDelayed(clickAnimation, 0);
+            }
+        });
+
+        imgMinus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (myRound && myGuess > 0) {
+                    myGuess -= 5;
+                    clickImg = imgMinus;
+                    setGuessImg();
+                }
+                mHandler.removeCallbacks(clickAnimation);
+                mHandler.postDelayed(clickAnimation, 0);
+            }
+        });
 
         //set on click listener to imgGuess
         imgGuess.setOnClickListener(new View.OnClickListener() {
@@ -163,26 +191,58 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
         });
     }
 
-    public void onClickCloudEvent(){
+    private Runnable clickAnimation = new Runnable() {
+        @Override
+        public void run() {
+            mHandler.removeCallbacks(clickAnimationEnd);
+            ObjectAnimator[] animatorStart = new ObjectAnimator[2];
+            animatorStart[0] = ObjectAnimator.ofFloat(clickImg, "scaleX", 1, 0.5f);
+            animatorStart[1] = ObjectAnimator.ofFloat(clickImg, "scaleY", 1, 0.5f);
+            for (int i = 0; i < animatorStart.length; i++) {
+                animatorStart[i].setDuration(250);
+            }
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(animatorStart);
+            animatorSet.start();
+            mHandler.postDelayed(clickAnimationEnd, 250);
+        }
+    };
+
+    private Runnable clickAnimationEnd = new Runnable() {
+        @Override
+        public void run() {
+            ObjectAnimator[] animatorEnd = new ObjectAnimator[2];
+            animatorEnd[0] = ObjectAnimator.ofFloat(clickImg, "scaleX", 0.5f, 1);
+            animatorEnd[1] = ObjectAnimator.ofFloat(clickImg, "scaleY", 0.5f, 1);
+            for (int i = 0; i < animatorEnd.length; i++) {
+                animatorEnd[i].setDuration(250);
+            }
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(animatorEnd);
+            animatorSet.start();
+        }
+    };
+
+    public void onClickCloudEvent() {
         timer.setProgress(250);
         if (opps.size() > 0) {
             if (win[0] > 1 || win[1] > 1) {
                 cd.show(getSupportFragmentManager(), "Continue");
             } else {
                 if (myRound) {
-                    myGuess = getActualHand();
+//                    myGuess = getActualHand();
                 }
                 roundStart();
             }
         } else {
-            Toast.makeText(GameActivity.this, "Loading... Please wate...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(GameActivity.this, "Click too frequently... please try later.", Toast.LENGTH_SHORT).show();
         }
     }
 
     private Runnable timerAnimation = new Runnable() {
         @Override
         public void run() {
-            if(gameOver) return;
+            if (gameOver) return;
             if (imgStartSrcIdx < 4) { //4
                 imgStart.setImageResource(imgStartSrc[imgStartSrcIdx++]);
                 ObjectAnimator[] animators = new ObjectAnimator[2];
@@ -207,7 +267,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
     private Runnable repeatAnimation = new Runnable() {
         @Override
         public void run() {
-            if(gameOver) return;
+            if (gameOver) return;
             ObjectAnimator[] animators = new ObjectAnimator[imgHand.length * 2];
 
             animators[0] = ObjectAnimator.ofFloat(imgHand[0], "rotation", 0, -10f);
@@ -237,8 +297,35 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
                 for (AnimatorSet as : animatorSet) {
                     as.start();
                 }
+                mHandler.postDelayed(repeatAnimation, 2000);
             }
-            mHandler.postDelayed(repeatAnimation, 2000);
+        }
+    };
+
+    private Runnable stopAnimation = new Runnable() {
+        @Override
+        public void run() {
+            if (gameOver) return;
+            ObjectAnimator[] animators = new ObjectAnimator[imgHand.length * 2];
+
+            animators[0] = ObjectAnimator.ofFloat(imgHand[0], "rotation", 0, 0);
+            animators[1] = ObjectAnimator.ofFloat(imgHand[0], "rotation", 0, 0);
+            animators[2] = ObjectAnimator.ofFloat(imgHand[1], "rotation", 0, 0);
+            animators[3] = ObjectAnimator.ofFloat(imgHand[1], "rotation", 0, 0);
+            animators[4] = ObjectAnimator.ofFloat(imgHand[2], "rotation", 0, 0);
+            animators[5] = ObjectAnimator.ofFloat(imgHand[2], "rotation", 0, 0);
+            animators[6] = ObjectAnimator.ofFloat(imgHand[3], "rotation", 0, 0);
+            animators[7] = ObjectAnimator.ofFloat(imgHand[3], "rotation", 0, 0);
+
+            for (int i = 0; i < animators.length; i++) {
+                animators[i].setDuration(1000);
+            }
+            AnimatorSet[] animatorSet = new AnimatorSet[imgHand.length];
+            for (int i = 0; i < animatorSet.length; i++) {
+                animatorSet[i] = new AnimatorSet();
+                animatorSet[i].playSequentially(animators[i * 2], animators[i * 2 + 1]);
+                animatorSet[i].start();
+            }
         }
     };
 
@@ -253,16 +340,17 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
     private Runnable timerStart = new Runnable() {
         @Override
         public void run() {
-            if(gameOver) return;
-            if(timer.getProgress() == 0){
+            if (gameOver) return;
+            if (timer.getProgress() == 0) {
                 timer.setProgress(250);
                 onClickCloudEvent();
-            }else {
-                timer.setProgress(timer.getProgress()-1);
+            } else {
+                timer.setProgress(timer.getProgress() - 1);
             }
-            mHandler.postDelayed(timerStart,1);
+            mHandler.postDelayed(timerStart, 1);
         }
     };
+
 
     private Runnable fightAnimation = new Runnable() {
         @Override
@@ -318,7 +406,9 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
 
     public void roundStart() {
         isRoundEnd = false;
-        isStopAnimation=false;
+        isStopAnimation = false;
+        mHandler.removeCallbacks(repeatAnimation);
+        mHandler.postDelayed(repeatAnimation, 0);
         if (myRound) {
             imgRound.setImageResource(R.drawable.your_round);
         } else {
@@ -352,19 +442,31 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
         for (int i = 0; i < isRock.length; i++)
             isRock[i] = 0;
         for (int i = 0; i < imgHand.length; i++) {
-            if (showAll || i <= 1) {
-                imgHand[i].setImageResource(imgSrc[i]);
-            } else if (i >= 2)  // 0 to 1 = my hand, >=2 opponent's hand
-                imgHand[i].setImageDrawable(null); // no image
+//            if (showAll || i <= 1) {
+            imgHand[i].setImageResource(imgSrc[i]);
+//            } else if (i >= 2)  // 0 to 1 = my hand, >=2 opponent's hand
+//                imgHand[i].setImageDrawable(null); // no image
         }
         if (showAll) {
             //set guess to 0
             imgGuess.setImageResource(imgSrc[8]);
+            imgMinus.setImageResource(R.drawable.minus);
+            imgPlus.setImageResource(R.drawable.plus);
         } else {
             //set guess to ??
             imgGuess.setImageResource(imgSrc[13]);
+            imgMinus.setImageDrawable(null);
+            imgPlus.setImageDrawable(null);
         }
-        imgAnswer.setImageDrawable(null);
+        showYouGuess();
+    }
+
+    public void showYouGuess() {
+        if (myRound) {
+            imgAnswer.setImageResource(R.drawable.you_guess);
+        } else {
+            imgAnswer.setImageDrawable(null);
+        }
     }
 
     public void switchPlayer() {
@@ -376,7 +478,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
             imgRound.setImageResource(R.drawable.opp_round);
             initRound(false);
         }
-        imgAnswer.setImageDrawable(null);
+        showYouGuess();
     }
 
     public void setOpponent() {
@@ -421,7 +523,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
         int i = 0;
         for (final ImageView hiv : imgHand) {
             final int x = i++;
-            if (!isLoading && !myRound) {
+            if (!isLoading) {
                 if (isRock[x] == 5) {
                     // set image to paper
                     hiv.setImageResource(imgSrc[x + 4]);
@@ -435,9 +537,13 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
 
     public void setGuessImg() {
         int handIdx = 0;
-        int sum = getActualHand();
+        int sum = myGuess;
         if (!myRound) {
             sum = oppGuess;
+        } else if (isStopAnimation) {
+            sum = getActualHand();
+            imgMinus.setImageDrawable(null);
+            imgPlus.setImageDrawable(null);
         }
         switch (sum) {
             case 0:
@@ -461,7 +567,8 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
     }
 
     public void fight() {
-        isStopAnimation=true;
+        isStopAnimation = true;
+        mHandler.postDelayed(stopAnimation, 0);
         oppGuess = opps.getFirst().getGuess();
         isRock[2] = opps.getFirst().getLeft();
         isRock[3] = opps.getFirst().getRight();
@@ -476,7 +583,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
                 if (++win[0] >= 2) {
                     imgRound.setImageResource(R.drawable.you_win);
                     saveGameLog(1);
-                    gameOver=true;
+                    gameOver = true;
                     cd.show(getSupportFragmentManager(), "Continue");
                 }
             } else {
@@ -491,7 +598,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
                 if (++win[1] >= 2) {
                     imgRound.setImageResource(R.drawable.you_lose);
                     saveGameLog(0);
-                    gameOver=true;
+                    gameOver = true;
                     cd.show(getSupportFragmentManager(), "Continue");
                 }
             } else {
@@ -504,7 +611,8 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
         tv_round.setText("Round:" + round);
         resultOk = true;
         isRoundEnd = true;
-        isStopAnimation=true;
+        isStopAnimation = true;
+        myGuess = 0;
         Log.d("LinkedList", "" + opps.size());
         if (opps.size() <= 30) {
             downloadGuess(50, false);
@@ -516,7 +624,7 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
         if (isContinue) {
             gameOver = false;
             //initGame();
-            mHandler.postDelayed(timerStart,0);
+            mHandler.postDelayed(timerStart, 0);
             mHandler.postDelayed(repeatAnimation, 0);
             if (!myRound) switchPlayer();
             roundStart();
@@ -540,7 +648,15 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
 
     public void onBackPressed() {
         //not allow pressing the back button
-        gameOver=true;
+        gameOver = true;
+        mHandler.removeCallbacks(clickAnimation);
+        mHandler.removeCallbacks(clickAnimationEnd);
+        mHandler.removeCallbacks(timerAnimation);
+        mHandler.removeCallbacks(repeatAnimation);
+        mHandler.removeCallbacks(stopAnimation);
+        mHandler.removeCallbacks(refreshScore);
+        mHandler.removeCallbacks(timerStart);
+        mHandler.removeCallbacks(fightAnimation);
         task.cancel(true);
         task = null;
         finish();

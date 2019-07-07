@@ -40,6 +40,10 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
     private boolean isLoading;
     public static String[] playerInfo; //0=id, 1=name, 2= country
     public boolean rRock, lRock;
+    private float x;
+    private float y;
+    private boolean isSet;
+
 
     private Handler mHandler = new Handler();
 
@@ -57,9 +61,9 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
         btnClear = findViewById(R.id.btnClear);
         btnQuit = findViewById(R.id.btnQuit);
         imgView = new ImageView[3];
-        imgView[0]=findViewById(R.id.logo);
-        imgView[1]=findViewById(R.id.imgLHand);
-        imgView[2]=findViewById(R.id.imgRHand);
+        imgView[0] = findViewById(R.id.logo);
+        imgView[1] = findViewById(R.id.imgLHand);
+        imgView[2] = findViewById(R.id.imgRHand);
 
 //        draw.addView(new StartIcon(this));
         btnStart.setOnClickListener(new View.OnClickListener() {
@@ -107,6 +111,14 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
             }
         });
 
+        imgView[0].setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mHandler.removeCallbacks(clickAnimation);
+                mHandler.postDelayed(clickAnimation, 0);
+            }
+        });
+
         imgView[1].setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -131,31 +143,102 @@ public class MainActivity extends AppCompatActivity implements RegisterDialog.Re
 
         initialDB(false);
 
-
         mHandler.postDelayed(repeatAnimation, 0);
     }
+
+    private Runnable clickAnimation = new Runnable() {
+        @Override
+        public void run() {
+           mHandler.removeCallbacks(clickAnimating);
+            if (!isSet) {
+                x = imgView[0].getX();
+                y = imgView[0].getY();
+                isSet = true;
+            }
+            ObjectAnimator[] animatorStart = new ObjectAnimator[3];
+            animatorStart[0] = ObjectAnimator.ofFloat(imgView[0], "scaleX", 1, 0.015f);
+            animatorStart[1] = ObjectAnimator.ofFloat(imgView[0], "scaleY", 1, 0.5f);
+            animatorStart[2] = ObjectAnimator.ofFloat(imgView[0], "rotationX", 0,1080);
+//            animatorStart[3] = ObjectAnimator.ofFloat(imgView[0], "rotationY", 0,360);
+            for (int i = 0; i < animatorStart.length; i++) {
+                animatorStart[i].setDuration(1000);
+            }
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(animatorStart);
+            animatorSet.start();
+            mHandler.postDelayed(clickAnimating, 1000);
+        }
+    };
+
+    private Runnable clickAnimating = new Runnable() {
+        @Override
+        public void run() {
+            ObjectAnimator[] animatorEnd = new ObjectAnimator[2];
+            animatorEnd[0] = ObjectAnimator.ofFloat(imgView[0], "Y", y, y - 1000f);
+            animatorEnd[1] = ObjectAnimator.ofFloat(imgView[0], "rotationX", 0,1080);
+            for (int i = 0; i < animatorEnd.length; i++) {
+                animatorEnd[i].setDuration(500);
+            }
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(animatorEnd);
+            animatorSet.start();
+            mHandler.postDelayed(clickAnimationEnd, 500);
+        }
+    };
+
+    private Runnable clickAnimationEnd = new Runnable() {
+        @Override
+        public void run() {
+            ObjectAnimator[] animatorEnd = new ObjectAnimator[4];
+            animatorEnd[0] = ObjectAnimator.ofFloat(imgView[0], "Y", y - 1000f, y);
+            animatorEnd[1] = ObjectAnimator.ofFloat(imgView[0], "rotationX", 0,1080);
+            animatorEnd[2] = ObjectAnimator.ofFloat(imgView[0], "scaleX", 0.015f, 0.05f);
+            animatorEnd[3] = ObjectAnimator.ofFloat(imgView[0], "scaleY", 0.5f,0.1f);
+            for (int i = 0; i < animatorEnd.length; i++) {
+                animatorEnd[i].setDuration(250);
+            }
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(animatorEnd);
+            animatorSet.start();
+            mHandler.postDelayed(clickAnimationEnd2, 250);
+        }
+    };
+
+    private Runnable clickAnimationEnd2 = new Runnable() {
+        @Override
+        public void run() {
+            ObjectAnimator[] animatorEnd = new ObjectAnimator[2];
+            animatorEnd[0] = ObjectAnimator.ofFloat(imgView[0], "scaleX", 0.05f, 2f, 0.05f,1);
+            animatorEnd[1] = ObjectAnimator.ofFloat(imgView[0], "scaleY", 0.1f, 0.01f, 3,1);
+            for (int i = 0; i < animatorEnd.length; i++) {
+                animatorEnd[i].setDuration(1000);
+            }
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(animatorEnd);
+            animatorSet.start();
+        }
+    };
 
     private Runnable repeatAnimation = new Runnable() {
         @Override
         public void run() {
-            ObjectAnimator[] animators = new ObjectAnimator[imgView.length *2];
+            ObjectAnimator[] animators = new ObjectAnimator[4];
+            animators[0] = ObjectAnimator.ofFloat(imgView[1], "rotation", 10f, -10f);
+            animators[1] = ObjectAnimator.ofFloat(imgView[1], "rotation", -10f, 10f);
+            animators[2] = ObjectAnimator.ofFloat(imgView[2], "rotation", -10f, 10f);
+            animators[3] = ObjectAnimator.ofFloat(imgView[2], "rotation", 10f, -10f);
 
-            animators[0]= ObjectAnimator.ofFloat(imgView[0], "rotationX", 0, 45);
-            animators[1]= ObjectAnimator.ofFloat(imgView[0], "rotationX", 45, 0);
-            animators[2]= ObjectAnimator.ofFloat(imgView[1], "rotation", 10f, -10f);
-            animators[3]= ObjectAnimator.ofFloat(imgView[1], "rotation", -10f, 10f);
-            animators[4]= ObjectAnimator.ofFloat(imgView[2], "rotation", -10f, 10f);
-            animators[5]= ObjectAnimator.ofFloat(imgView[2], "rotation", 10f, -10f);
-
-            for(int i=0; i<animators.length;i++){
+            for (int i = 0; i < animators.length; i++) {
                 animators[i].setDuration(1000);
             }
-            AnimatorSet[] animatorSet = new AnimatorSet[imgView.length];
-            for(int i=0; i<animatorSet.length;i++){
+            AnimatorSet[] animatorSet = new AnimatorSet[2];
+            for (int i = 0; i < animatorSet.length; i++) {
                 animatorSet[i] = new AnimatorSet();
-                animatorSet[i].playSequentially(animators[i*2], animators[i*2+1]);
+                animatorSet[i].playSequentially(animators[i * 2], animators[i * 2 + 1]);
                 animatorSet[i].start();
             }
+//            animatorSet[0].playSequentially(animators[0], animators[1]);
+//            animatorSet[1].playSequentially(animators[2], animators[3]);
 
 
             mHandler.postDelayed(repeatAnimation, 2000);
