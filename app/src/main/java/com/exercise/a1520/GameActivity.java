@@ -549,11 +549,11 @@ public class GameActivity extends AppCompatActivity implements ContinueDialog.Co
 
     public void saveGameLog(int win) {
         Date now = Calendar.getInstance().getTime();
-        String date = "" + (now.getDate() > 10 ? now.getDate() : "0" + now.getDate());
-        String month = "" + (now.getMonth() > 10 ? now.getMonth() : "0" + now.getMonth());
-        String hour = "" + (now.getHours() > 10 ? now.getHours() : "0" + now.getHours());
-        String minute = "" + (now.getMinutes() > 10 ? now.getMinutes() : "0" + now.getMinutes());
-        String second = "" + (now.getSeconds() > 10 ? now.getSeconds() : "0" + now.getSeconds());
+        String date = "" + (now.getDate() >= 10 ? now.getDate() : "0" + now.getDate());
+        String month = "" + (now.getMonth() >= 10 ? now.getMonth() : "0" + now.getMonth());
+        String hour = "" + (now.getHours() >= 10 ? now.getHours() : "0" + now.getHours());
+        String minute = "" + (now.getMinutes() >= 10 ? now.getMinutes() : "0" + now.getMinutes());
+        String second = "" + (now.getSeconds() >= 10 ? now.getSeconds() : "0" + now.getSeconds());
         String currentDate = date + "-" + month + "-" + Calendar.getInstance().getWeekYear();
         String curretnTime = hour + ":" + minute + ":" + second;
 
